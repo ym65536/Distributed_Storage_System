@@ -38,8 +38,13 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
   for i := 0; i < ntasks; i++ {
     taskArg := DoTaskArgs{jobName, mapFiles[i], phase, i, n_other};
     go func(taskArg DoTaskArgs, registerChan chan string) {
-      idleWorker := <- registerChan;
-      call(idleWorker, "Worker.DoTask", taskArg, nil);
+      var idleWorker string;
+      result := false;
+      for result == false {
+        idleWorker = <- registerChan;
+        result = call(idleWorker, "Worker.DoTask", taskArg, nil);
+        fmt.Printf("worker: %s, %d done\n", idleWorker, result);
+      }
       go func() {
         registerChan <- idleWorker;
       } ();
