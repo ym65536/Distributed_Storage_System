@@ -5,6 +5,7 @@ import(
   "fmt"
   "os"
   "log"
+  "io"
 )
 
 func doReduce(
@@ -71,7 +72,9 @@ func doReduce(
       var kv KeyValue;
       err = dec.Decode(&kv);
       if err != nil {
-        log.Println("Decode: %s", err);
+        if err != io.EOF {
+          log.Println("Decode ERROR: ", err);
+        }
         break;
       }
       kvs[kv.Key] = append(kvs[kv.Key], kv.Value);
