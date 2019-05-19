@@ -17,13 +17,27 @@ package raft
 //   in the same server.
 //
 
-import "sync"
-import "labrpc"
+import (
+    "sync"
+    "labrpc"
+    "fmt"
+    "math/rand"
+    "time"
+    "sync/atomic"
+    )
 
 // import "bytes"
 // import "labgob"
 
-
+const (
+  FOLLOWER = iota
+  CANDIDATE
+  LEADER
+ 
+  HEARTBEAT_INTERVAL = 100
+  MIN_ELECTION_INTERVAL = 400
+  MAX_ELECTION_INTERVAL = 500
+)
 
 //
 // as each Raft peer becomes aware that successive log entries are
@@ -55,18 +69,39 @@ type Raft struct {
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
 
+  // Persistent state on all server
+  currentTerm int32 
+  state int32 //  FOLLOWER, CANDIDATE or LEADER
+  voteFor int // vote for which peer
+  voteAcquired int // raft.me recv vote count
+
+  electionTimer *time.Timer
+  applyChan chan bool
+  voteChan chan bool
+}
+
+func (rf *Raft) getTerm() int32 {
+  return atomic.LoadInt32(&rf.currentTerm)
+}
+
+func (rf *Raft) incrTerm() int32 {
+  return atomic.AddInt32(&rf.currentTerm, 1)
+}
+
+func (rf *Raft) checkState(state int32) bool {
+  return atomic.LoadInt32(&rf.state) == state
 }
 
 // return currentTerm and whether this server
 // believes it is the leader.
 func (rf *Raft) GetState() (int, bool) {
-
 	var term int
 	var isleader bool
 	// Your code here (2A).
+  term = int(rf.getTerm())
+  isleader = rf.checkState(LEADER)
 	return term, isleader
 }
-
 
 //
 // save Raft's persistent state to stable storage,
@@ -116,6 +151,8 @@ func (rf *Raft) readPersist(data []byte) {
 //
 type RequestVoteArgs struct {
 	// Your data here (2A, 2B).
+  Term int32
+  CandidateId int
 }
 
 //
@@ -124,6 +161,37 @@ type RequestVoteArgs struct {
 //
 type RequestVoteReply struct {
 	// Your data here (2A).
+  Term int32
+  VoteGranted bool
+}
+
+type AppendEntryArgs struct {
+  Term     int32
+  LeaderId int
+}
+
+type AppendEntryReply struct {
+  Term    int32
+  Success bool
+}
+
+func (rf *Raft) AppendEntry(args *AppendEntryArgs, reply *AppendEntryReply) {
+  rf.mu.Lock()
+  defer rf.mu.Unlock()
+
+  if args.Term < rf.currentTerm {
+    reply.Success = false
+    reply.Term = rf.currentTerm
+  } else if args.Term > rf.currentTerm {
+    rf.currentTerm = args.Term
+    rf.updateState(FOLLOWER)
+    reply.Success = true
+  } else {
+    reply.Success = true
+  }
+  go func() { 
+    rf.applyChan <- true 
+  }()
 }
 
 //
@@ -131,6 +199,29 @@ type RequestVoteReply struct {
 //
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
+  rf.mu.Lock()
+  defer rf.mu.Unlock()
+  if args.Term < rf.currentTerm {
+    reply.VoteGranted = false
+    reply.Term = rf.currentTerm
+  } else if args.Term > rf.currentTerm {
+    rf.currentTerm = args.Term
+    rf.updateState(FOLLOWER)
+    rf.voteFor = args.CandidateId
+    reply.VoteGranted = true
+  } else {
+    if rf.voteFor == -1 {
+      rf.voteFor = args.CandidateId
+      reply.VoteGranted = true
+    } else {
+      reply.VoteGranted = false
+    }
+  }
+  if reply.VoteGranted == true {
+    go func() {
+      rf.voteChan <- true
+    }()
+  }
 }
 
 //
@@ -167,6 +258,10 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 	return ok
 }
 
+func (rf *Raft) sendAppendEntry(server int, args *AppendEntryArgs, reply *AppendEntryReply) bool {
+  ok := rf.peers[server].Call("Raft.AppendEntry", args, reply)
+  return ok
+}
 
 //
 // the service using Raft (e.g. a k/v server) wants to start
@@ -222,10 +317,133 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.me = me
 
 	// Your initialization code here (2A, 2B, 2C).
+  rf.state = FOLLOWER
+  rf.voteFor = -1
+  rf.voteChan = make(chan bool)
+  rf.applyChan = make(chan bool)
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 
+  go rf.startLoop()
 
 	return rf
+}
+
+func (rf *Raft) startLoop() {
+  rf.electionTimer = time.NewTimer(randElectionDuration())
+  for {
+    switch atomic.LoadInt32(&rf.state) {
+      case FOLLOWER:
+        select {
+          case <- rf.voteChan:
+            rf.electionTimer.Reset(randElectionDuration())
+          case <- rf.applyChan:
+            rf.electionTimer.Reset(randElectionDuration())
+          case <-rf.electionTimer.C:
+            rf.mu.Lock()
+            rf.updateState(CANDIDATE)
+            rf.mu.Unlock()
+        }
+      case CANDIDATE:
+        rf.mu.Lock()
+        select {
+          // candidate will not trigger vote chan, it vote for itself
+          case <- rf.applyChan:
+            rf.updateState(FOLLOWER)
+          case <- rf.electionTimer.C:
+            rf.electionTimer.Reset(randElectionDuration())
+            rf.startElection()
+          default:
+            if rf.voteAcquired > len(rf.peers) / 2 {
+              rf.updateState(LEADER)
+            }
+        }
+        rf.mu.Unlock()
+      case LEADER:
+        rf.broadcastAppendEntry()
+        time.Sleep(HEARTBEAT_INTERVAL * time.Millisecond)
+    }
+  }
+}
+
+func randElectionDuration() time.Duration {
+  r := rand.New(rand.NewSource(time.Now().UnixNano()))
+  return time.Millisecond * time.Duration(r.Int63n(MAX_ELECTION_INTERVAL-MIN_ELECTION_INTERVAL)+MIN_ELECTION_INTERVAL)
+}
+
+func (rf *Raft) updateState(state int32) {
+  if rf.checkState(state) {
+    return
+  }
+  preState := state
+  rf.state = state
+  switch rf.state {
+    case FOLLOWER:
+      rf.voteFor = -1
+    case CANDIDATE:
+      rf.startElection()
+    case LEADER:
+      // do nothing
+    default:
+      fmt.Printf("Warning: invalid state %d, do nothing.\n", state)
+  }
+  fmt.Printf("In term %d: Server %d transfer from %d to %d\n", 
+      rf.currentTerm, rf.me, preState, rf.state)
+}
+
+func (rf *Raft) startElection() {
+  rf.incrTerm()
+  rf.voteFor = rf.me
+  rf.voteAcquired = 1
+  rf.electionTimer.Reset(randElectionDuration())
+  rf.broadcastVote()
+}
+
+func (rf *Raft) broadcastVote() {
+  args := RequestVoteArgs{Term: atomic.LoadInt32(&rf.currentTerm), CandidateId: rf.me}
+  for i, _ := range rf.peers {
+    if i == rf.me {
+      continue
+    }
+    go func(server int) {
+      var reply RequestVoteReply
+      if rf.checkState(CANDIDATE) && rf.sendRequestVote(server, &args, &reply) {
+        rf.mu.Lock()
+        defer rf.mu.Unlock()
+        if reply.VoteGranted == true {
+          rf.voteAcquired += 1
+        } else {
+          if reply.Term > rf.currentTerm {
+            rf.currentTerm = reply.Term
+            rf.updateState(FOLLOWER)
+          }
+        }
+      } else {
+        fmt.Printf("Server %d send vote req failed.\n", rf.me)
+      }
+    }(i)
+  }
+}
+
+func (rf *Raft) broadcastAppendEntry() {
+  args := AppendEntryArgs {Term: atomic.LoadInt32(&rf.currentTerm), LeaderId:rf.me}
+  for i, _ := range rf.peers {
+    if i == rf.me {
+      continue
+    }
+    go func(server int){
+      var reply AppendEntryReply
+      if rf.checkState(LEADER) && rf.sendAppendEntry(server, &args, &reply) {
+        if reply.Success == true {
+          // success, do nothing
+        } else {
+          if reply.Term > rf.currentTerm {
+            rf.currentTerm = reply.Term
+            rf.updateState(FOLLOWER)
+          }
+        }
+      }
+    }(i)
+  }
 }
