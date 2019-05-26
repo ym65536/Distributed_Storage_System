@@ -70,13 +70,13 @@ type Raft struct {
 	// state a Raft server must maintain.
 
   // Persistent state on all server
+  role int32 //  FOLLOWER, CANDIDATE or LEADER
   currentTerm int32 
-  state int32 //  FOLLOWER, CANDIDATE or LEADER
   voteFor int // vote for which peer
   voteAcquired int // raft.me recv vote count
 
   electionTimer *time.Timer
-  applyChan chan bool
+  appendChan chan bool
   voteChan chan bool
 }
 
@@ -88,8 +88,8 @@ func (rf *Raft) incrTerm() int32 {
   return atomic.AddInt32(&rf.currentTerm, 1)
 }
 
-func (rf *Raft) checkState(state int32) bool {
-  return atomic.LoadInt32(&rf.state) == state
+func (rf *Raft) checkState(role int32) bool {
+  return atomic.LoadInt32(&rf.role) == role
 }
 
 // return currentTerm and whether this server
@@ -190,7 +190,7 @@ func (rf *Raft) AppendEntry(args *AppendEntryArgs, reply *AppendEntryReply) {
     reply.Success = true
   }
   go func() { 
-    rf.applyChan <- true 
+    rf.appendChan <- true 
   }()
 }
 
@@ -201,7 +201,10 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
   rf.mu.Lock()
   defer rf.mu.Unlock()
+
   if args.Term < rf.currentTerm {
+    DPrintf("I(%v) not vote Peer(%v) my term:%d, vote term:%d", rf.me, args.CandidateId,
+        rf.currentTerm, args.Term)
     reply.VoteGranted = false
     reply.Term = rf.currentTerm
   } else if args.Term > rf.currentTerm {
@@ -317,10 +320,10 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.me = me
 
 	// Your initialization code here (2A, 2B, 2C).
-  rf.state = FOLLOWER
+  rf.role = FOLLOWER
   rf.voteFor = -1
   rf.voteChan = make(chan bool)
-  rf.applyChan = make(chan bool)
+  rf.appendChan = make(chan bool)
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
@@ -333,12 +336,12 @@ func Make(peers []*labrpc.ClientEnd, me int,
 func (rf *Raft) startLoop() {
   rf.electionTimer = time.NewTimer(randElectionDuration())
   for {
-    switch atomic.LoadInt32(&rf.state) {
+    switch atomic.LoadInt32(&rf.role) {
       case FOLLOWER:
         select {
           case <- rf.voteChan:
             rf.electionTimer.Reset(randElectionDuration())
-          case <- rf.applyChan:
+          case <- rf.appendChan:
             rf.electionTimer.Reset(randElectionDuration())
           case <-rf.electionTimer.C:
             rf.mu.Lock()
@@ -349,7 +352,7 @@ func (rf *Raft) startLoop() {
         rf.mu.Lock()
         select {
           // candidate will not trigger vote chan, it vote for itself
-          case <- rf.applyChan:
+          case <- rf.appendChan:
             rf.updateState(FOLLOWER)
           case <- rf.electionTimer.C:
             rf.electionTimer.Reset(randElectionDuration())
@@ -377,8 +380,8 @@ func (rf *Raft) updateState(state int32) {
     return
   }
   preState := state
-  rf.state = state
-  switch rf.state {
+  rf.role = state
+  switch rf.role {
     case FOLLOWER:
       rf.voteFor = -1
     case CANDIDATE:
@@ -389,18 +392,18 @@ func (rf *Raft) updateState(state int32) {
       fmt.Printf("Warning: invalid state %d, do nothing.\n", state)
   }
   fmt.Printf("In term %d: Server %d transfer from %d to %d\n", 
-      rf.currentTerm, rf.me, preState, rf.state)
+      rf.currentTerm, rf.me, preState, rf.role)
 }
 
 func (rf *Raft) startElection() {
   rf.incrTerm()
   rf.voteFor = rf.me
-  rf.voteAcquired = 1
+  rf.voteAcquired = 1 // Vote for myself
   rf.electionTimer.Reset(randElectionDuration())
-  rf.broadcastVote()
+  rf.broadcastRequestVote()
 }
 
-func (rf *Raft) broadcastVote() {
+func (rf *Raft) broadcastRequestVote() {
   args := RequestVoteArgs{Term: atomic.LoadInt32(&rf.currentTerm), CandidateId: rf.me}
   for i, _ := range rf.peers {
     if i == rf.me {
@@ -408,7 +411,11 @@ func (rf *Raft) broadcastVote() {
     }
     go func(server int) {
       var reply RequestVoteReply
-      if rf.checkState(CANDIDATE) && rf.sendRequestVote(server, &args, &reply) {
+      if rf.checkState(CANDIDATE) == false {
+        fmt.Printf("My(%d) role not candidate, state=%d.\n", rf.me, rf.role)
+        return
+      }
+      if rf.sendRequestVote(server, &args, &reply) {
         rf.mu.Lock()
         defer rf.mu.Unlock()
         if reply.VoteGranted == true {
@@ -420,7 +427,7 @@ func (rf *Raft) broadcastVote() {
           }
         }
       } else {
-        fmt.Printf("Server %d send vote req failed.\n", rf.me)
+        //fmt.Printf("Server %d send vote req failed, state=%d.\n", rf.me, rf.role)
       }
     }(i)
   }
@@ -434,7 +441,11 @@ func (rf *Raft) broadcastAppendEntry() {
     }
     go func(server int){
       var reply AppendEntryReply
-      if rf.checkState(LEADER) && rf.sendAppendEntry(server, &args, &reply) {
+      if rf.checkState(LEADER) == false {
+        fmt.Printf("My(%d) role not leader, state=%d.\n", rf.me, rf.role)
+        return
+      }
+      if rf.sendAppendEntry(server, &args, &reply) {
         if reply.Success == true {
           // success, do nothing
         } else {
@@ -443,6 +454,8 @@ func (rf *Raft) broadcastAppendEntry() {
             rf.updateState(FOLLOWER)
           }
         }
+      } else {
+        //fmt.Printf("Server %d send heartbeat failed, state=%d.\n", rf.me, rf.role)
       }
     }(i)
   }
