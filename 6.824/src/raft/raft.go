@@ -409,6 +409,11 @@ func Make(peers []*labrpc.ClientEnd, me int,
   rf.matchIndex = make([]int, len(rf.peers))
   rf.applyCh = applyCh
   rf.log = make([]LogEntry, 1)
+  rf.log[0] = LogEntry {
+    Term: 0,
+    Index: 0,
+    Command: 0,
+  }
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
@@ -427,7 +432,7 @@ func (rf *Raft) updateState(state int32) {
   if rf.checkState(state) {
     return
   }
-  preState := state
+  preState := rf.role
   rf.role = state
   switch rf.role {
     case FOLLOWER:
@@ -436,7 +441,7 @@ func (rf *Raft) updateState(state int32) {
       rf.startElection()
     case LEADER:
       for i, _ := range rf.peers {
-        rf.nextIndex[i] = rf.getLastLogIndex() - 1
+        rf.nextIndex[i] = rf.getLastLogIndex() + 1
         rf.matchIndex[i] = 0
       }
     default:
@@ -496,6 +501,8 @@ func (rf *Raft) broadcastAppendEntry() {
       args.LeaderId = rf.me
       args.LeaderCommit = rf.commitIndex
       args.PrevLogIndex = rf.nextIndex[server] - 1
+      fmt.Printf("My(%d) role=%d,commitIndex=%d,log_size=%d,PrevLogIndex=%d\n", rf.me, rf.role,
+          rf.commitIndex, len(rf.log), args.PrevLogIndex)
       args.PrevLogTerm = rf.log[args.PrevLogIndex].Term
       if rf.getLastLogIndex() > rf.nextIndex[server] {
         args.Entries = rf.log[rf.nextIndex[server]:]
