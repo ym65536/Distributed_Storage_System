@@ -188,7 +188,8 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
   defer rf.mu.Unlock()
 
   if args.Term < rf.currentTerm || 
-    (args.Term == rf.currentTerm && rf.voteFor != -1) {
+    (args.Term == rf.currentTerm && rf.voteFor != -1 && 
+     rf.voteFor != args.CandidateId) {
     DPrintf("I(%v) not vote for peer(%v), my term:%d,peer term:%d, voteFor:%d", 
         rf.me, args.CandidateId, rf.currentTerm, args.Term, rf.voteFor)
     reply.Term = rf.currentTerm
@@ -280,6 +281,13 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
     reply.Term = rf.currentTerm
     return
   } 
+  
+  if args.Term > rf.currentTerm { // new leader comes
+    DPrintf("I(%v) recv from leader(%v), my term:%d,peer term:%d", 
+        rf.me, args.LeaderId, rf.currentTerm, args.Term)
+    rf.ChangeRole(Follower)
+  }
+
   // Part B, RIMP_2
   if (len(rf.logs) < args.PrevLogIndex + 1) || 
       (rf.logs[args.PrevLogIndex].Term != args.PrevLogTerm) {
@@ -346,6 +354,9 @@ func (rf *Raft) Apply() {
         msg.Command = entry.Command
         msg.CommandIndex = start_idx + idx
         rf.applyChan <- msg
+        rf.mu.Lock()
+        rf.lastApplied = msg.CommandIndex
+        rf.mu.Unlock()
       }
     }(rf.lastApplied+1, rf.logs[rf.lastApplied+1:rf.commitIndex+1])
   }
@@ -376,7 +387,8 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
     rf.mu.Lock()
     index = len(rf.logs)
     rf.logs = append(rf.logs, LogEntry{Command:command, Term:term})
-    rf.nextIndex[rf.me] = len(rf.logs)
+    rf.matchIndex[rf.me] = index
+    rf.nextIndex[rf.me] = index + 1
     DPrintf("%v start agreement on command %d on index %d", rf, command.(int), index)
     rf.mu.Unlock()
   }
@@ -423,7 +435,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
   rf.logs = make([]LogEntry, 1) // start from index 1
   rf.nextIndex = make([]int, len(rf.peers))
   for i := range rf.nextIndex { // initialize with 1
-    rf.nextIndex[i] = 1
+    rf.nextIndex[i] = len(rf.logs)
   } 
   rf.matchIndex = make([]int, len(rf.peers))
 
@@ -488,7 +500,11 @@ func (rf *Raft) ChangeRole (role int) {
     case Candidate: 
       rf.StartElection()
     case Leader: 
-      // do nothing now
+      for i, _ := range rf.nextIndex {
+        rf.nextIndex[i] = len(rf.logs)
+        rf.matchIndex[i] = 0
+      } 
+      rf.StartLoop()
     default:
       fmt.Printf("Error: invalid role %d.\n", role)
   }
@@ -576,7 +592,7 @@ func (rf *Raft) BroadcastAppendEntries() {
         // See Rules for Servers: Leader
         // check if we need to update commitIndex, from last to commited
         for idx := len(rf.logs) - 1; idx > rf.commitIndex; idx -- {
-          count := 1 // self must be agreed
+          count := 0
           for _, matchIndex := range rf.matchIndex {
             if matchIndex >= idx {
               count += 1
