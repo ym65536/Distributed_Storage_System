@@ -459,7 +459,6 @@ func (rf *Raft) StartLoop() {
             rf.electionTimer.Reset(ElectionDuration())
           case <- rf.electionTimer.C: // election timeout
             rf.ChangeRole(Candidate)
-            rf.StartElection() // according to rules for candidate, start election
         }
       case Candidate: // Rules for candidate
         select {
@@ -488,7 +487,7 @@ func ElectionDuration() time.Duration {
 
 func (rf *Raft) ChangeRole (role int) {
   if rf.CheckRole(role) {
-    fmt.Printf("Warning: role %d exist.\n", role)
+    fmt.Printf("Warning: server %d role %d already exist.\n", rf.me, role)
     return
   }
   preRole := rf.role
@@ -498,7 +497,7 @@ func (rf *Raft) ChangeRole (role int) {
       rf.voteFor = -1
       rf.voteAcquired = 0
     case Candidate: 
-      rf.StartElection()
+      rf.StartElection() // according to rules for candidate, start election
     case Leader: 
       for i, _ := range rf.nextIndex {
         rf.nextIndex[i] = len(rf.logs)
@@ -521,6 +520,7 @@ func (rf *Raft) StartElection() {
   rf.voteFor = rf.me // vote for myself
   rf.voteAcquired = 1 // myself vote granted
   rf.electionTimer.Reset(ElectionDuration()) 
+  fmt.Printf("Server %d StartElection, term=%d.\n", rf.me, rf.currentTerm)
   rf.BroadcastRequestVote() // send request vote to peers
 }
 
@@ -539,6 +539,7 @@ func (rf *Raft) BroadcastRequestVote() {
     if rf.me == i {
       continue // do not need request vote for myself
     }
+    fmt.Printf("<%d> send vote request to peer %d.\n", rf.me, i)
     go func(peer int) {
       var reply RequestVoteReply
       res := rf.sendRequestVote(peer, &args, &reply)
@@ -548,7 +549,8 @@ func (rf *Raft) BroadcastRequestVote() {
       }
       if reply.VoteGranted == true {
         rf.voteAcquired += 1
-        fmt.Printf("Server %d request vote granted. acquire=%d.\n", rf.me, rf.voteAcquired)
+        fmt.Printf("Server %d request vote granted from peer %d. acquire=%d.\n",
+            rf.me, peer, rf.voteAcquired)
       } else { // for rules 2: If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
         if reply.Term > rf.currentTerm {
           rf.currentTerm = reply.Term
@@ -560,16 +562,13 @@ func (rf *Raft) BroadcastRequestVote() {
 }
 
 func (rf *Raft) BroadcastAppendEntries() {
-  if rf.CheckRole(Leader) == false { // only leader can send append entries
-    fmt.Printf("My(%d) role not leader, state=%d.\n", rf.me, rf.role)
-    return
-  }
   for i,_ := range rf.peers {
     if rf.me == i {
       continue // do not need append entry for myself
     }
     go func(peer int) {
       // Part B
+      rf.mu.Lock()
       prevLogIndex := rf.nextIndex[peer] - 1
       var args AppendEntriesArgs
       args.Term = rf.currentTerm
@@ -578,13 +577,20 @@ func (rf *Raft) BroadcastAppendEntries() {
       args.PrevLogTerm = rf.logs[prevLogIndex].Term
       args.LogEntries = rf.logs[prevLogIndex + 1:]
       args.LeaderCommit = rf.commitIndex
+      rf.mu.Unlock()
 
       var reply AppendEntriesReply
-      fmt.Printf("leader=%d send heartbeat to server=%d.\n", rf.me, peer)
+      if rf.CheckRole(Leader) == false { // only leader can send append entries
+        fmt.Printf("My(%d) role not leader, state=%d, cannot send appendEntry.\n", rf.me, rf.role)
+        return
+      }
+      fmt.Printf("<leader=%d:role=%d> send heartbeat to server=%d.\n", rf.me, rf.role, peer)
       if rf.sendAppendEntries(peer, &args, &reply) == false {
         fmt.Printf("Server %d send heartbeat to peer %d fail.\n", rf.me, peer)
         return
       }
+      rf.mu.Lock()
+      defer rf.mu.Unlock()
       if reply.Success == true {
         // Part B
         rf.matchIndex[peer] = args.PrevLogIndex + len(args.LogEntries)
@@ -592,8 +598,11 @@ func (rf *Raft) BroadcastAppendEntries() {
         // See Rules for Servers: Leader
         // check if we need to update commitIndex, from last to commited
         for idx := len(rf.logs) - 1; idx > rf.commitIndex; idx -- {
-          count := 0
-          for _, matchIndex := range rf.matchIndex {
+          count := 1 // 初始化为 1 因为自身也有一票
+          for server, matchIndex := range rf.matchIndex {
+            if server == rf.me {
+              continue
+            }
             if matchIndex >= idx {
               count += 1
             }
@@ -611,6 +620,7 @@ func (rf *Raft) BroadcastAppendEntries() {
         } else { // log mismatch
           rf.nextIndex[peer] -= 1 
           // need retry ?
+          return
         }
       }
     } (i)
