@@ -217,6 +217,8 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
        args.LastLogIndex < lastLogIndex) {
     reply.Term = rf.currentTerm;
     reply.VoteGranted = false;
+    fmt.Printf("Args=(%v) not up-to-date as my(%d) logs=(%v), reply=(%v).\n",
+        args, rf.me, rf.logs, reply)
   }
 
   if reply.VoteGranted == true {
@@ -305,7 +307,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
     } else {
       index := args.PrevLogIndex
       for ; index >= 0; index-- {
-        if (rf.logs[index].Term == rf.logs[args.PrevLogIndex].Term) {
+        if (rf.logs[index].Term != rf.logs[args.PrevLogIndex].Term) {
           break
         }  
       }
@@ -609,16 +611,16 @@ func (rf *Raft) BroadcastAppendEntries() {
         fmt.Printf("My(%d) role not leader, state=%d, cannot send appendEntry.\n", rf.me, rf.role)
         return
       }
-      fmt.Printf("<leader=%d:role=%d> send heartbeat to server=%d,req(%v).\n",
-          rf.me, rf.role, peer, args)
+      fmt.Printf("<leader=%d:role=%d:logs=(%v)> send heartbeat to server=%d,req(%v).\n",
+          rf.me, rf.role, rf.logs, peer, args)
       if rf.sendAppendEntries(peer, &args, &reply) == false {
         fmt.Printf("Server %d send heartbeat to peer %d fail.\n", rf.me, peer)
         return
       }
       rf.mu.Lock()
       defer rf.mu.Unlock()
-      fmt.Printf("<leader=%d:role=%d> heartbeat reply(%d:%d) from server=%d.\n",
-          rf.me, rf.role, reply.Success, reply.Term, peer)
+      fmt.Printf("<leader=%d:role=%d> heartbeat reply(%v) from server=%d.\n",
+          rf.me, rf.role, reply, peer)
       if reply.Success == true {
         // Part B
         rf.matchIndex[peer] = args.PrevLogIndex + len(args.LogEntries)
