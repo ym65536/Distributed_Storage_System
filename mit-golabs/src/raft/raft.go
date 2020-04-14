@@ -187,27 +187,31 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
   rf.mu.Lock()
   defer rf.mu.Unlock()
 
-  if args.Term < rf.currentTerm || 
-    (args.Term == rf.currentTerm && rf.voteFor != -1 && 
-     rf.voteFor != args.CandidateId) {
-    DPrintf("I(%v) not vote for peer(%v), my term:%d,peer term:%d, voteFor:%d", 
+  if args.Term < rf.currentTerm { 
+    fmt.Printf("I(%v) not vote for peer(%v), my term:%d,peer term:%d,voteFor:%d\n", 
         rf.me, args.CandidateId, rf.currentTerm, args.Term, rf.voteFor)
     reply.Term = rf.currentTerm
     reply.VoteGranted = false
     return
-  }
-  rf.voteFor = args.CandidateId
-  rf.currentTerm = args.Term
-  reply.VoteGranted = true
-  if args.Term > rf.currentTerm { // new leader comes
-    DPrintf("I(%v) recv from leader(%v), my term:%d,peer term:%d", 
+  } else if args.Term == rf.currentTerm {
+    if rf.voteFor != -1 {
+      rf.voteFor = args.CandidateId
+      reply.VoteGranted = true
+    } else {
+      reply.VoteGranted = false
+    }
+  } else {
+    rf.voteFor = args.CandidateId
+    rf.currentTerm = args.Term
+    fmt.Printf("I(%v) recv from leader(%v), my term:%d,peer term:%d\n", 
         rf.me, args.CandidateId, rf.currentTerm, args.Term)
     rf.ChangeRole(Follower)
+    reply.VoteGranted = true
   }
 
   // part B. candidate vote should be at least up-to-date as recivers's log,
   // see 5.4.1
-  lastLogIndex := len(rf.logs) - 1
+  lastLogIndex := rf.GetLastLogIndex()
   if (args.LastLogTerm < rf.logs[lastLogIndex].Term) ||
       (args.LastLogTerm == rf.logs[lastLogIndex].Term && 
        args.LastLogIndex < lastLogIndex) {
@@ -269,12 +273,15 @@ type AppendEntriesArgs struct {
 type AppendEntriesReply struct {
   Term int 
   Success bool
+  NextTrial int
 }
 
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
   rf.mu.Lock()
   defer rf.mu.Unlock()
 
+  fmt.Printf("I(%v) term(%d) logs(%v) Recv from leader id=%d, info(%v).\n", rf.me,
+      rf.currentTerm, rf.logs, args.LeaderId, args)
   // Receiver implementation ==> RIPM_1
   if args.Term < rf.currentTerm {
     reply.Success = false
@@ -283,33 +290,46 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
   } 
   
   if args.Term > rf.currentTerm { // new leader comes
-    DPrintf("I(%v) recv from leader(%v), my term:%d,peer term:%d", 
+    fmt.Printf("I(%v) recv from leader(%v), my term:%d,peer term:%d, change role\n", 
         rf.me, args.LeaderId, rf.currentTerm, args.Term)
     rf.ChangeRole(Follower)
   }
 
-  // Part B, RIMP_2
-  if (len(rf.logs) < args.PrevLogIndex + 1) || 
-      (rf.logs[args.PrevLogIndex].Term != args.PrevLogTerm) {
+  // Part B, Recviver IMP_2
+  if args.PrevLogIndex > rf.GetLastLogIndex() || 
+      rf.logs[args.PrevLogIndex].Term != args.PrevLogTerm {
     reply.Success = false
     reply.Term = rf.currentTerm
+    if (args.PrevLogIndex > rf.GetLastLogIndex()) {
+      reply.NextTrial = rf.GetLastLogIndex() + 1
+    } else {
+      index := args.PrevLogIndex
+      for ; index >= 0; index-- {
+        if (rf.logs[index].Term == rf.logs[args.PrevLogIndex].Term) {
+          break
+        }  
+      }
+      reply.NextTrial = index + 1
+    }
+    fmt.Printf("I(%v) response to leader id=%d, reply(%v).\n", rf.me,
+        args.LeaderId, reply)
     return
   }
-  // RIMP_3
-  mismatch_idx := -1
+  // Receiver IMP_3
+  mismatchIdx := -1
   for idx := range args.LogEntries {
     if (len(rf.logs) < args.PrevLogIndex + 1 + idx + 1) ||
       (rf.logs[args.PrevLogIndex + 1 + idx].Term != args.LogEntries[idx].Term) {
-        mismatch_idx = idx;
+        mismatchIdx = idx;
         break;
       }
   }
-  if mismatch_idx != -1 {
-    rf.logs = rf.logs[:args.PrevLogIndex + 1 + mismatch_idx]
+  if mismatchIdx != -1 {
+    rf.logs = rf.logs[:args.PrevLogIndex + 1 + mismatchIdx]
     // RIMP_4
-    rf.logs = append(rf.logs, args.LogEntries[mismatch_idx:]...)
-    DPrintf("I(%v) mismatch index(%v), my term:%d,peer term:%d", 
-        rf.me, mismatch_idx, rf.currentTerm, args.Term)
+    rf.logs = append(rf.logs, args.LogEntries[mismatchIdx:]...)
+    fmt.Printf("I(%v) agrement apply logs(%v) mismatch index(%v), my term:%d,peer term:%d\n", 
+        rf.me, rf.logs, mismatchIdx, rf.currentTerm, args.Term)
   } 
   // RIMP_5
   if args.LeaderCommit > rf.commitIndex {
@@ -348,7 +368,7 @@ func (rf *Raft) Apply() {
   if rf.commitIndex > rf.lastApplied {
     go func(start_idx int, entries []LogEntry) {
       for idx, entry := range entries {
-        DPrintf("%v applies command %d on index %d", rf, entry.Command.(int), start_idx+idx)
+        fmt.Printf("I(%v) applies command %d on index %d\n", rf.me, entry.Command.(int), start_idx+idx)
         var msg ApplyMsg
         msg.CommandValid = true
         msg.Command = entry.Command
@@ -386,10 +406,11 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
   if isLeader {
     rf.mu.Lock()
     index = len(rf.logs)
-    rf.logs = append(rf.logs, LogEntry{Command:command, Term:term})
+    rf.logs = append(rf.logs, LogEntry{Command:command, Term:term, Index:index})
     rf.matchIndex[rf.me] = index
     rf.nextIndex[rf.me] = index + 1
-    DPrintf("%v start agreement on command %d on index %d", rf, command.(int), index)
+    fmt.Printf("I(%v) log(%v) start agreement on command %d on index %d term %d\n",
+        rf.me, rf.logs, command.(int), index, term)
     rf.mu.Unlock()
   }
 
@@ -404,6 +425,10 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 //
 func (rf *Raft) Kill() {
 	// Your code here, if desired.
+}
+
+func (rf *Raft) GetLastLogIndex() int {
+  return len(rf.logs) - 1
 }
 
 //
@@ -584,13 +609,16 @@ func (rf *Raft) BroadcastAppendEntries() {
         fmt.Printf("My(%d) role not leader, state=%d, cannot send appendEntry.\n", rf.me, rf.role)
         return
       }
-      fmt.Printf("<leader=%d:role=%d> send heartbeat to server=%d.\n", rf.me, rf.role, peer)
+      fmt.Printf("<leader=%d:role=%d> send heartbeat to server=%d,req(%v).\n",
+          rf.me, rf.role, peer, args)
       if rf.sendAppendEntries(peer, &args, &reply) == false {
         fmt.Printf("Server %d send heartbeat to peer %d fail.\n", rf.me, peer)
         return
       }
       rf.mu.Lock()
       defer rf.mu.Unlock()
+      fmt.Printf("<leader=%d:role=%d> heartbeat reply(%d:%d) from server=%d.\n",
+          rf.me, rf.role, reply.Success, reply.Term, peer)
       if reply.Success == true {
         // Part B
         rf.matchIndex[peer] = args.PrevLogIndex + len(args.LogEntries)
@@ -614,11 +642,19 @@ func (rf *Raft) BroadcastAppendEntries() {
           }
         }
       } else {
+        fmt.Printf("Server <%d:%d> heartbeat to peer %d resp error.current term=%d,reply=(%v)\n", 
+            rf.me, rf.role, peer, rf.currentTerm, reply)
+        if rf.CheckRole(Leader) == false { // only leader can send append entries
+          fmt.Printf("My(%d) role not leader, state=%d, cannot deal.\n", rf.me, rf.role)
+          return
+        }
         if reply.Term > rf.currentTerm { // For rule 2
           rf.currentTerm = reply.Term
           rf.ChangeRole(Follower)
         } else { // log mismatch
-          rf.nextIndex[peer] -= 1 
+          fmt.Printf("My(%d) peer=%d log mismatch,next index=%d,trial index=%d.\n", rf.me, peer,
+              rf.nextIndex[peer], reply.NextTrial)
+          rf.nextIndex[peer] = reply.NextTrial 
           // need retry ?
           return
         }
