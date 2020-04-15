@@ -72,6 +72,7 @@ type Raft struct {
 	peers     []*labrpc.ClientEnd // RPC end points of all peers
 	persister *Persister          // Object to hold this peer's persisted state
 	me        int                 // this peer's index into peers[]
+  uuid      int64                 // my identity
 
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
@@ -83,6 +84,7 @@ type Raft struct {
   voteFor int // vote for which peer
   voteAcquired int // raft.me recv vote count
   electionTimer *time.Timer
+  heartbeatTimer *time.Timer
   voteChan chan int // candidate send vote and vote for it
   appendChan chan int // leader send heartbeat or append log request
 
@@ -201,10 +203,10 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
       reply.VoteGranted = false
     }
   } else {
-    rf.voteFor = args.CandidateId
-    rf.currentTerm = args.Term
     fmt.Printf("I(%v) recv from leader(%v), my term:%d,peer term:%d\n", 
         rf.me, args.CandidateId, rf.currentTerm, args.Term)
+    rf.voteFor = args.CandidateId
+    rf.currentTerm = args.Term
     rf.ChangeRole(Follower)
     reply.VoteGranted = true
   }
@@ -292,10 +294,17 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
   } 
   
   if args.Term > rf.currentTerm { // new leader comes
-    fmt.Printf("I(%v) recv from leader(%v), my term:%d,peer term:%d, change role\n", 
+    fmt.Printf("I(%v) append entry from leader(%v), my term:%d,peer term:%d, change role\n", 
         rf.me, args.LeaderId, rf.currentTerm, args.Term)
+    rf.currentTerm = args.Term
     rf.ChangeRole(Follower)
   }
+
+  // noitfy: reset election timer even log does not match
+  // args.LeaderId is the current term's Leader
+  go func() {
+    rf.appendChan <- args.LeaderId
+  }()
 
   // Part B, Recviver IMP_2
   if args.PrevLogIndex > rf.GetLastLogIndex() || 
@@ -351,11 +360,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
   } else {
     reply.Success = true
   }
-
-  // noitfy 
-  go func() {
-    rf.appendChan <- args.LeaderId
-  }()
+  return
 }
 
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
@@ -450,6 +455,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.peers = peers
 	rf.persister = persister
 	rf.me = me
+  rf.uuid = time.Now().UnixNano()
 
 	// Your initialization code here (2A, 2B, 2C).
   rf.role = Follower
@@ -468,15 +474,18 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
+  fmt.Printf("Create server=(%v).\n", rf)
   
+  rf.electionTimer = time.NewTimer(ElectionDuration())
+  rf.heartbeatTimer = time.NewTimer(HEARTBEAT_INTERVAL * time.Millisecond)
   go rf.StartLoop()
   
 	return rf
 }
 
 func (rf *Raft) StartLoop() {
-  rf.electionTimer = time.NewTimer(ElectionDuration())
   for {
+    //fmt.Printf("Do Loop for rf=(id=%d:uuid=%d:role=%d).\n", rf.me, rf.uuid, rf.role)
     switch (rf.role) {
       case Follower: // Rules for follower
         select {
@@ -494,14 +503,13 @@ func (rf *Raft) StartLoop() {
           case <- rf.electionTimer.C: // election timeout, start new election
             rf.electionTimer.Reset(ElectionDuration())
             rf.StartElection()
-          default:
-            if rf.voteAcquired > len(rf.peers) / 2 {
-              rf.ChangeRole(Leader)
-            }
         }
       case Leader: // Rules for leader
-        rf.BroadcastAppendEntries()
-        time.Sleep(HEARTBEAT_INTERVAL * time.Millisecond)
+        select {
+          case <- rf.heartbeatTimer.C:
+            rf.BroadcastAppendEntries()
+            rf.heartbeatTimer.Reset(HEARTBEAT_INTERVAL * time.Millisecond)
+        }
     }
   }
 }
@@ -523,9 +531,13 @@ func (rf *Raft) ChangeRole (role int) {
     case Follower:
       rf.voteFor = -1
       rf.voteAcquired = 0
+      rf.heartbeatTimer.Stop()
+      rf.electionTimer.Reset(ElectionDuration())
     case Candidate: 
       rf.StartElection() // according to rules for candidate, start election
     case Leader: 
+      rf.electionTimer.Stop()
+      rf.heartbeatTimer.Reset(HEARTBEAT_INTERVAL * time.Millisecond)
       for i, _ := range rf.nextIndex {
         rf.nextIndex[i] = len(rf.logs)
         rf.matchIndex[i] = 0
@@ -576,8 +588,10 @@ func (rf *Raft) BroadcastRequestVote() {
       }
       if reply.VoteGranted == true {
         rf.voteAcquired += 1
-        fmt.Printf("Server %d request vote granted from peer %d. acquire=%d.\n",
-            rf.me, peer, rf.voteAcquired)
+        fmt.Printf("Server %d request vote granted from peer %d.acquire=%d.\n", rf.me, peer, rf.voteAcquired)
+        if rf.voteAcquired > len(rf.peers) / 2 {
+          rf.ChangeRole(Leader)
+        }
       } else { // for rules 2: If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
         if reply.Term > rf.currentTerm {
           rf.currentTerm = reply.Term
@@ -611,8 +625,8 @@ func (rf *Raft) BroadcastAppendEntries() {
         fmt.Printf("My(%d) role not leader, state=%d, cannot send appendEntry.\n", rf.me, rf.role)
         return
       }
-      fmt.Printf("<leader=%d:role=%d:logs=(%v)> send heartbeat to server=%d,req(%v).\n",
-          rf.me, rf.role, rf.logs, peer, args)
+      fmt.Printf("<leader=%d:role=%d:uuid=%d:logs=(%v)> send heartbeat to server=%d,req(%v).\n",
+          rf.me, rf.role, rf.uuid, rf.logs, peer, args)
       if rf.sendAppendEntries(peer, &args, &reply) == false {
         fmt.Printf("Server %d send heartbeat to peer %d fail.\n", rf.me, peer)
         return
