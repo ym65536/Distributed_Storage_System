@@ -23,11 +23,10 @@ import (
     "fmt"
     "math/rand"
     "time"
+    "bytes"
+    "labgob"
 //    "sync/atomic"
     )
-
-// import "bytes"
-// import "labgob"
 
 const (
   Follower = 0
@@ -124,13 +123,13 @@ func (rf *Raft) GetState() (int, bool) {
 //
 func (rf *Raft) persist() {
 	// Your code here (2C).
-	// Example:
-	// w := new(bytes.Buffer)
-	// e := labgob.NewEncoder(w)
-	// e.Encode(rf.xxx)
-	// e.Encode(rf.yyy)
-	// data := w.Bytes()
-	// rf.persister.SaveRaftState(data)
+	w := new(bytes.Buffer)
+	e := labgob.NewEncoder(w)
+	e.Encode(rf.currentTerm)
+	e.Encode(rf.voteFor)
+	e.Encode(rf.logs)
+	data := w.Bytes()
+  rf.persister.SaveRaftState(data)
 }
 
 
@@ -142,21 +141,23 @@ func (rf *Raft) readPersist(data []byte) {
 		return
 	}
 	// Your code here (2C).
-	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := labgob.NewDecoder(r)
-	// var xxx
-	// var yyy
-	// if d.Decode(&xxx) != nil ||
-	//    d.Decode(&yyy) != nil {
-	//   error...
-	// } else {
-	//   rf.xxx = xxx
-	//   rf.yyy = yyy
-	// }
+	r := bytes.NewBuffer(data)
+	d := labgob.NewDecoder(r)
+	var currentTerm int
+	var voteFor int
+  var logs []LogEntry
+	if d.Decode(&currentTerm) != nil ||
+	   d.Decode(&voteFor) != nil ||
+     d.Decode(&logs) != nil {
+	  fmt.Printf("server=(%v) recover from persist fails.\n", rf) 
+    return
+	}
+  rf.currentTerm = currentTerm
+  rf.voteFor = voteFor
+  rf.logs = logs
+  fmt.Printf("server(%d) recover success.currentTerm=%d,voteFor=%d,logs=(%v).\n", 
+      rf.me, currentTerm, voteFor, logs)
 }
-
-
 
 
 //
@@ -188,6 +189,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
   rf.mu.Lock()
   defer rf.mu.Unlock()
+  defer rf.persist()
 
   if args.Term < rf.currentTerm { 
     fmt.Printf("I(%v) not vote for peer(%v), my term:%d,peer term:%d,voteFor:%d\n", 
@@ -283,6 +285,7 @@ type AppendEntriesReply struct {
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
   rf.mu.Lock()
   defer rf.mu.Unlock()
+  defer rf.persist()
 
   fmt.Printf("I(%v) term(%d) logs(%v) Recv from leader id=%d, info(%v).\n", rf.me,
       rf.currentTerm, rf.logs, args.LeaderId, args)
@@ -416,6 +419,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
     rf.logs = append(rf.logs, LogEntry{Command:command, Term:term, Index:index})
     rf.matchIndex[rf.me] = index
     rf.nextIndex[rf.me] = index + 1
+    rf.persist()
     fmt.Printf("I(%v) log(%v) start agreement on command %d on index %d term %d\n",
         rf.me, rf.logs, command.(int), index, term)
     rf.mu.Unlock()
@@ -551,6 +555,7 @@ func (rf *Raft) ChangeRole (role int) {
 }
 
 func (rf *Raft) StartElection() {
+  defer rf.persist()
   if !rf.CheckRole(Candidate) {
     fmt.Printf("Error: invalid role=%d, not candidate.\n", rf.role)
     return
@@ -596,6 +601,7 @@ func (rf *Raft) BroadcastRequestVote() {
         if reply.Term > rf.currentTerm {
           rf.currentTerm = reply.Term
           rf.ChangeRole(Follower)
+          rf.persist()
         }
       }
     } (i)
@@ -667,6 +673,7 @@ func (rf *Raft) BroadcastAppendEntries() {
         if reply.Term > rf.currentTerm { // For rule 2
           rf.currentTerm = reply.Term
           rf.ChangeRole(Follower)
+          rf.persist() 
         } else { // log mismatch
           fmt.Printf("My(%d) peer=%d log mismatch,next index=%d,trial index=%d.\n", rf.me, peer,
               rf.nextIndex[peer], reply.NextTrial)
