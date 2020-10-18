@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<!-- saved from url=(0099)https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3 -->
+<html lang="en" class="turbolinks-progress-bar"><head prefix="og: http://ogp.me/ns#"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta content="IE=edge" http-equiv="X-UA-Compatible">
+<meta content="object" property="og:type">
+<meta content="GitLab" property="og:site_name">
+<meta content="ucsd-udisk" property="og:title">
+<meta content="UDisk团队" property="og:description">
+<meta content="https://gitlab.ucloudadmin.com/assets/gitlab_logo-cdf021b35c4e6bb149e26460f26fae81e80552bc879179dd80e9e9266b14e894.png" property="og:image">
+<meta content="https://gitlab.ucloudadmin.com/groups/ucsd-udisk" property="og:url">
+<meta content="summary" property="twitter:card">
+<meta content="ucsd-udisk" property="twitter:title">
+<meta content="UDisk团队" property="twitter:description">
+<meta content="https://gitlab.ucloudadmin.com/assets/gitlab_logo-cdf021b35c4e6bb149e26460f26fae81e80552bc879179dd80e9e9266b14e894.png" property="twitter:image">
+
+<title>Udisk v4 设计文档 · Wiki · ucsd-udisk / udisk · GitLab</title>
+<meta content="UDisk团队" name="description">
+<link rel="shortcut icon" type="image/x-icon" href="https://gitlab.ucloudadmin.com/assets/favicon-075eba76312e8421991a0c1f89a89ee81678bcde72319dd3e8047e2a47cd3a42.ico">
+<link rel="stylesheet" media="all" href="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/application-fd0e10fb4d3fe179d5d5ec0f0b442a6ba0947398433875b8beaf3ee0650688ce.css">
+<link rel="stylesheet" media="print" href="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/print-6939eb32d7a168d8fe54b11c4873498ba343870a6f7d2eb15147f7035a0154e2.css">
+<script src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/application-cc81b2cb7095bd6ebe37958c2299aed00763e150a443b86d74776e638b5d05e5.js"></script><style id="ace_editor">.ace_editor {position: relative;overflow: hidden;font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;font-size: 12px;line-height: normal;color: black;}.ace_editor .ace_line {direction: ltr;unicode-bidi: bidi-override;}.ace_scroller {position: absolute;overflow: hidden;top: 0;bottom: 0;background-color: inherit;-ms-user-select: none;-moz-user-select: none;-webkit-user-select: none;user-select: none;}.ace_content {position: absolute;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;cursor: text;min-width: 100%;}.ace_dragging, .ace_dragging * {cursor: move !important;}.ace_dragging .ace_scroller:before{position: absolute;top: 0;left: 0;right: 0;bottom: 0;content: '';background: rgba(250, 250, 250, 0.01);z-index: 1000;}.ace_dragging.ace_dark .ace_scroller:before{background: rgba(0, 0, 0, 0.01);}.ace_selecting, .ace_selecting * {cursor: text !important;}.ace_gutter {position: absolute;overflow : hidden;width: auto;top: 0;bottom: 0;left: 0;cursor: default;z-index: 4;}.ace_gutter-active-line {position: absolute;left: 0;right: 0;}.ace_scroller.ace_scroll-left {box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;}.ace_gutter-cell {padding-left: 19px;padding-right: 6px;background-repeat: no-repeat;}.ace_gutter-cell.ace_error {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUM2OEZDQTQ4RTU0MTFFMUEzM0VFRTM2RUY1M0RBMjYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUM2OEZDQTU4RTU0MTFFMUEzM0VFRTM2RUY1M0RBMjYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBQzY4RkNBMjhFNTQxMUUxQTMzRUVFMzZFRjUzREEyNiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBQzY4RkNBMzhFNTQxMUUxQTMzRUVFMzZFRjUzREEyNiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PkgXxbAAAAJbSURBVHjapFNNaBNBFH4zs5vdZLP5sQmNpT82QY209heh1ioWisaDRcSKF0WKJ0GQnrzrxasHsR6EnlrwD0TagxJabaVEpFYxLWlLSS822tr87m66ccfd2GKyVhA6MMybgfe97/vmPUQphd0sZjto9XIn9OOsvlu2nkqRzVU+6vvlzPf8W6bk8dxQ0NPbxAALgCgg2JkaQuhzQau/El0zbmUA7U0Es8v2CiYmKQJHGO1QICCLoqilMhkmurDAyapKgqItezi/USRdJqEYY4D5jCy03ht2yMkkvL91jTTX10qzyyu2hruPRN7jgbH+EOsXcMLgYiThEgAMhABW85oqy1DXdRIdvP1AHJ2acQXvDIrVHcdQNrEKNYSVMSZGMjEzIIAwDXIo+6G/FxcGnzkC3T2oMhLjre49sBB+RRcHLqdafK6sYdE/GGBwU1VpFNj0aN8pJbe+BkZyevUrvLl6Xmm0W9IuTc0DxrDNAJd5oEvI/KRsNC3bQyNjPO9yQ1YHcfj2QvfQc/5TUhJTBc2iM0U7AWDQtc1nJHvD/cfO2s7jaGkiTEfa/Ep8coLu7zmNmh8+dc5lZDuUeFAGUNA/OY6JVaypQ0vjr7XYjUvJM37vt+j1vuTK5DgVfVUoTjVe+y3/LxMxY2GgU+CSLy4cpfsYorRXuXIOi0Vt40h67uZFTdIo6nLaZcwUJWAzwNS0tBnqqKzQDnjdG/iPyZxo46HaKUpbvYkj8qYRTZsBhge+JHhZyh0x9b95JqjVJkT084kZIPwu/mPWqPgfQ5jXh2+92Ay7HedfAgwA6KDWafb4w3cAAAAASUVORK5CYII=");background-repeat: no-repeat;background-position: 2px center;}.ace_gutter-cell.ace_warning {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QUM2OEZDQTg4RTU0MTFFMUEzM0VFRTM2RUY1M0RBMjYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QUM2OEZDQTk4RTU0MTFFMUEzM0VFRTM2RUY1M0RBMjYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBQzY4RkNBNjhFNTQxMUUxQTMzRUVFMzZFRjUzREEyNiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBQzY4RkNBNzhFNTQxMUUxQTMzRUVFMzZFRjUzREEyNiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pgd7PfIAAAGmSURBVHjaYvr//z8DJZiJgUIANoCRkREb9gLiSVAaQx4OQM7AAkwd7XU2/v++/rOttdYGEB9dASEvOMydGKfH8Gv/p4XTkvRBfLxeQAP+1cUhXopyvzhP7P/IoSj7g7Mw09cNKO6J1QQ0L4gICPIv/veg/8W+JdFvQNLHVsW9/nmn9zk7B+cCkDwhL7gt6knSZnx9/LuCEOcvkIAMP+cvto9nfqyZmmUAksfnBUtbM60gX/3/kgyv3/xSFOL5DZT+L8vP+Yfh5cvfPvp/xUHyQHXGyAYwgpwBjZYFT3Y1OEl/OfCH4ffv3wzc4iwMvNIsDJ+f/mH4+vIPAxsb631WW0Yln6ZpQLXdMK/DXGDflh+sIv37EivD5x//Gb7+YWT4y86sl7BCCkSD+Z++/1dkvsFRl+HnD1Rvje4F8whjMXmGj58YGf5zsDMwcnAwfPvKcml62DsQDeaDxN+/Y0qwlpEHqrdB94IRNIDUgfgfKJChGK4OikEW3gTiXUB950ASLFAF54AC94A0G9QAfOnmF9DCDzABFqS08IHYDIScdijOjQABBgC+/9awBH96jwAAAABJRU5ErkJggg==");background-position: 2px center;}.ace_gutter-cell.ace_info {background-image: url("data:image/gif;base64,R0lGODlhEAAQAMQAAAAAAEFBQVJSUl5eXmRkZGtra39/f4WFhYmJiZGRkaampry8vMPDw8zMzNXV1dzc3OTk5Orq6vDw8P///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABQALAAAAAAQABAAAAUuICWOZGmeaBml5XGwFCQSBGyXRSAwtqQIiRuiwIM5BoYVbEFIyGCQoeJGrVptIQA7");background-position: 2px center;}.ace_dark .ace_gutter-cell.ace_info {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpGRTk5MTVGREIxNDkxMUUxOTc5Q0FFREQyMTNGMjBFQyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpGRTk5MTVGRUIxNDkxMUUxOTc5Q0FFREQyMTNGMjBFQyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZFOTkxNUZCQjE0OTExRTE5NzlDQUVERDIxM0YyMEVDIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkZFOTkxNUZDQjE0OTExRTE5NzlDQUVERDIxM0YyMEVDIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+SIDkjAAAAJ1JREFUeNpi/P//PwMlgImBQkB7A6qrq/+DMC55FkIGKCoq4pVnpFkgTp069f/+/fv/r1u37r+tre1/kg0A+ptn9uzZYLaRkRHpLvjw4cNXWVlZhufPnzOcO3eOdAO0tbVPAjHDmzdvGA4fPsxIsgGSkpJmv379Ynj37h2DjIyMCMkG3LhxQ/T27dsMampqDHZ2dq/pH41DxwCAAAMAFdc68dUsFZgAAAAASUVORK5CYII=");}.ace_scrollbar {position: absolute;right: 0;bottom: 0;z-index: 6;}.ace_scrollbar-inner {position: absolute;cursor: text;left: 0;top: 0;}.ace_scrollbar-v{overflow-x: hidden;overflow-y: scroll;top: 0;}.ace_scrollbar-h {overflow-x: scroll;overflow-y: hidden;left: 0;}.ace_print-margin {position: absolute;height: 100%;}.ace_text-input {position: absolute;z-index: 0;width: 0.5em;height: 1em;opacity: 0;background: transparent;-moz-appearance: none;appearance: none;border: none;resize: none;outline: none;overflow: hidden;font: inherit;padding: 0 1px;margin: 0 -1px;text-indent: -1em;-ms-user-select: text;-moz-user-select: text;-webkit-user-select: text;user-select: text;}.ace_text-input.ace_composition {background: #f8f8f8;color: #111;z-index: 1000;opacity: 1;text-indent: 0;}.ace_layer {z-index: 1;position: absolute;overflow: hidden;white-space: pre;height: 100%;width: 100%;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;/* setting pointer-events: auto; on node under the mouse, which changesduring scroll, will break mouse wheel scrolling in Safari */pointer-events: none;}.ace_gutter-layer {position: relative;width: auto;text-align: right;pointer-events: auto;}.ace_text-layer {font: inherit !important;}.ace_cjk {display: inline-block;text-align: center;}.ace_cursor-layer {z-index: 4;}.ace_cursor {z-index: 4;position: absolute;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;border-left: 2px solid}.ace_slim-cursors .ace_cursor {border-left-width: 1px;}.ace_overwrite-cursors .ace_cursor {border-left-width: 0px;border-bottom: 1px solid;}.ace_hidden-cursors .ace_cursor {opacity: 0.2;}.ace_smooth-blinking .ace_cursor {-moz-transition: opacity 0.18s;-webkit-transition: opacity 0.18s;-o-transition: opacity 0.18s;-ms-transition: opacity 0.18s;transition: opacity 0.18s;}.ace_cursor[style*="opacity: 0"]{-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";}.ace_editor.ace_multiselect .ace_cursor {border-left-width: 1px;}.ace_marker-layer .ace_step, .ace_marker-layer .ace_stack {position: absolute;z-index: 3;}.ace_marker-layer .ace_selection {position: absolute;z-index: 5;}.ace_marker-layer .ace_bracket {position: absolute;z-index: 6;}.ace_marker-layer .ace_active-line {position: absolute;z-index: 2;}.ace_marker-layer .ace_selected-word {position: absolute;z-index: 4;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;}.ace_line .ace_fold {-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;display: inline-block;height: 11px;margin-top: -2px;vertical-align: middle;background-image:url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%11%00%00%00%09%08%06%00%00%00%D4%E8%C7%0C%00%00%03%1EiCCPICC%20Profile%00%00x%01%85T%DFk%D3P%14%FE%DAe%9D%B0%E1%8B%3Ag%11%09%3Eh%91ndStC%9C%B6kW%BA%CDZ%EA6%B7!H%9B%A6m%5C%9A%C6%24%ED~%B0%07%D9%8Bo%3A%C5w%F1%07%3E%F9%07%0C%D9%83o%7B%92%0D%C6%14a%F8%AC%88%22L%F6%22%B3%9E%9B4M'S%03%B9%F7%BB%DF%F9%EE9'%E7%E4%5E%A0%F9qZ%D3%14%2F%0F%14USO%C5%C2%FC%C4%E4%14%DF%F2%01%5E%1CC%2B%FChM%8B%86%16J%26G%40%0F%D3%B2y%EF%B3%F3%0E%1E%C6lt%EEo%DF%AB%FEc%D5%9A%95%0C%11%F0%1C%20%BE%945%C4%22%E1Y%A0i%5C%D4t%13%E0%D6%89%EF%9D15%C2%CDLsX%A7%04%09%1Fg8oc%81%E1%8C%8D%23%96f45%40%9A%09%C2%07%C5B%3AK%B8%408%98i%E0%F3%0D%D8%CE%81%14%E4'%26%A9%92.%8B%3C%ABER%2F%E5dE%B2%0C%F6%F0%1Fs%83%F2_%B0%A8%94%E9%9B%AD%E7%10%8Dm%9A%19N%D1%7C%8A%DE%1F9%7Dp%8C%E6%00%D5%C1%3F_%18%BDA%B8%9DpX6%E3%A35~B%CD%24%AE%11%26%BD%E7%EEti%98%EDe%9A%97Y)%12%25%1C%24%BCbT%AE3li%E6%0B%03%89%9A%E6%D3%ED%F4P%92%B0%9F4%BF43Y%F3%E3%EDP%95%04%EB1%C5%F5%F6KF%F4%BA%BD%D7%DB%91%93%07%E35%3E%A7)%D6%7F%40%FE%BD%F7%F5r%8A%E5y%92%F0%EB%B4%1E%8D%D5%F4%5B%92%3AV%DB%DB%E4%CD%A6%23%C3%C4wQ%3F%03HB%82%8E%1Cd(%E0%91B%0Ca%9Ac%C4%AA%F8L%16%19%22J%A4%D2itTy%B28%D6%3B(%93%96%ED%1CGx%C9_%0E%B8%5E%16%F5%5B%B2%B8%F6%E0%FB%9E%DD%25%D7%8E%BC%15%85%C5%B7%A3%D8Q%ED%B5%81%E9%BA%B2%13%9A%1B%7Fua%A5%A3n%E17%B9%E5%9B%1Bm%AB%0B%08Q%FE%8A%E5%B1H%5Ee%CAO%82Q%D7u6%E6%90S%97%FCu%0B%CF2%94%EE%25v%12X%0C%BA%AC%F0%5E%F8*l%0AO%85%17%C2%97%BF%D4%C8%CE%DE%AD%11%CB%80q%2C%3E%AB%9ES%CD%C6%EC%25%D2L%D2%EBd%B8%BF%8A%F5B%C6%18%F9%901CZ%9D%BE%24M%9C%8A9%F2%DAP%0B'%06w%82%EB%E6%E2%5C%2F%D7%07%9E%BB%CC%5D%E1%FA%B9%08%AD.r%23%8E%C2%17%F5E%7C!%F0%BE3%BE%3E_%B7o%88a%A7%DB%BE%D3d%EB%A31Z%EB%BB%D3%91%BA%A2%B1z%94%8F%DB'%F6%3D%8E%AA%13%19%B2%B1%BE%B1~V%08%2B%B4%A2cjJ%B3tO%00%03%25mN%97%F3%05%93%EF%11%84%0B%7C%88%AE-%89%8F%ABbW%90O%2B%0Ao%99%0C%5E%97%0CI%AFH%D9.%B0%3B%8F%ED%03%B6S%D6%5D%E6i_s9%F3*p%E9%1B%FD%C3%EB.7U%06%5E%19%C0%D1s.%17%A03u%E4%09%B0%7C%5E%2C%EB%15%DB%1F%3C%9E%B7%80%91%3B%DBc%AD%3Dma%BA%8B%3EV%AB%DBt.%5B%1E%01%BB%0F%AB%D5%9F%CF%AA%D5%DD%E7%E4%7F%0Bx%A3%FC%06%A9%23%0A%D6%C2%A1_2%00%00%00%09pHYs%00%00%0B%13%00%00%0B%13%01%00%9A%9C%18%00%00%00%B5IDAT(%15%A5%91%3D%0E%02!%10%85ac%E1%05%D6%CE%D6%C6%CE%D2%E8%ED%CD%DE%C0%C6%D6N.%E0V%F8%3D%9Ca%891XH%C2%BE%D9y%3F%90!%E6%9C%C3%BFk%E5%011%C6-%F5%C8N%04%DF%BD%FF%89%DFt%83DN%60%3E%F3%AB%A0%DE%1A%5Dg%BE%10Q%97%1B%40%9C%A8o%10%8F%5E%828%B4%1B%60%87%F6%02%26%85%1Ch%1E%C1%2B%5Bk%FF%86%EE%B7j%09%9A%DA%9B%ACe%A3%F9%EC%DA!9%B4%D5%A6%81%86%86%98%CC%3C%5B%40%FA%81%B3%E9%CB%23%94%C16Azo%05%D4%E1%C1%95a%3B%8A'%A0%E8%CC%17%22%85%1D%BA%00%A2%FA%DC%0A%94%D1%D1%8D%8B%3A%84%17B%C7%60%1A%25Z%FC%8D%00%00%00%00IEND%AEB%60%82"),url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%05%00%00%007%08%06%00%00%00%C4%DD%80C%00%00%03%1EiCCPICC%20Profile%00%00x%01%85T%DFk%D3P%14%FE%DAe%9D%B0%E1%8B%3Ag%11%09%3Eh%91ndStC%9C%B6kW%BA%CDZ%EA6%B7!H%9B%A6m%5C%9A%C6%24%ED~%B0%07%D9%8Bo%3A%C5w%F1%07%3E%F9%07%0C%D9%83o%7B%92%0D%C6%14a%F8%AC%88%22L%F6%22%B3%9E%9B4M'S%03%B9%F7%BB%DF%F9%EE9'%E7%E4%5E%A0%F9qZ%D3%14%2F%0F%14USO%C5%C2%FC%C4%E4%14%DF%F2%01%5E%1CC%2B%FChM%8B%86%16J%26G%40%0F%D3%B2y%EF%B3%F3%0E%1E%C6lt%EEo%DF%AB%FEc%D5%9A%95%0C%11%F0%1C%20%BE%945%C4%22%E1Y%A0i%5C%D4t%13%E0%D6%89%EF%9D15%C2%CDLsX%A7%04%09%1Fg8oc%81%E1%8C%8D%23%96f45%40%9A%09%C2%07%C5B%3AK%B8%408%98i%E0%F3%0D%D8%CE%81%14%E4'%26%A9%92.%8B%3C%ABER%2F%E5dE%B2%0C%F6%F0%1Fs%83%F2_%B0%A8%94%E9%9B%AD%E7%10%8Dm%9A%19N%D1%7C%8A%DE%1F9%7Dp%8C%E6%00%D5%C1%3F_%18%BDA%B8%9DpX6%E3%A35~B%CD%24%AE%11%26%BD%E7%EEti%98%EDe%9A%97Y)%12%25%1C%24%BCbT%AE3li%E6%0B%03%89%9A%E6%D3%ED%F4P%92%B0%9F4%BF43Y%F3%E3%EDP%95%04%EB1%C5%F5%F6KF%F4%BA%BD%D7%DB%91%93%07%E35%3E%A7)%D6%7F%40%FE%BD%F7%F5r%8A%E5y%92%F0%EB%B4%1E%8D%D5%F4%5B%92%3AV%DB%DB%E4%CD%A6%23%C3%C4wQ%3F%03HB%82%8E%1Cd(%E0%91B%0Ca%9Ac%C4%AA%F8L%16%19%22J%A4%D2itTy%B28%D6%3B(%93%96%ED%1CGx%C9_%0E%B8%5E%16%F5%5B%B2%B8%F6%E0%FB%9E%DD%25%D7%8E%BC%15%85%C5%B7%A3%D8Q%ED%B5%81%E9%BA%B2%13%9A%1B%7Fua%A5%A3n%E17%B9%E5%9B%1Bm%AB%0B%08Q%FE%8A%E5%B1H%5Ee%CAO%82Q%D7u6%E6%90S%97%FCu%0B%CF2%94%EE%25v%12X%0C%BA%AC%F0%5E%F8*l%0AO%85%17%C2%97%BF%D4%C8%CE%DE%AD%11%CB%80q%2C%3E%AB%9ES%CD%C6%EC%25%D2L%D2%EBd%B8%BF%8A%F5B%C6%18%F9%901CZ%9D%BE%24M%9C%8A9%F2%DAP%0B'%06w%82%EB%E6%E2%5C%2F%D7%07%9E%BB%CC%5D%E1%FA%B9%08%AD.r%23%8E%C2%17%F5E%7C!%F0%BE3%BE%3E_%B7o%88a%A7%DB%BE%D3d%EB%A31Z%EB%BB%D3%91%BA%A2%B1z%94%8F%DB'%F6%3D%8E%AA%13%19%B2%B1%BE%B1~V%08%2B%B4%A2cjJ%B3tO%00%03%25mN%97%F3%05%93%EF%11%84%0B%7C%88%AE-%89%8F%ABbW%90O%2B%0Ao%99%0C%5E%97%0CI%AFH%D9.%B0%3B%8F%ED%03%B6S%D6%5D%E6i_s9%F3*p%E9%1B%FD%C3%EB.7U%06%5E%19%C0%D1s.%17%A03u%E4%09%B0%7C%5E%2C%EB%15%DB%1F%3C%9E%B7%80%91%3B%DBc%AD%3Dma%BA%8B%3EV%AB%DBt.%5B%1E%01%BB%0F%AB%D5%9F%CF%AA%D5%DD%E7%E4%7F%0Bx%A3%FC%06%A9%23%0A%D6%C2%A1_2%00%00%00%09pHYs%00%00%0B%13%00%00%0B%13%01%00%9A%9C%18%00%00%00%3AIDAT8%11c%FC%FF%FF%7F%18%03%1A%60%01%F2%3F%A0%891%80%04%FF%11-%F8%17%9BJ%E2%05%B1ZD%81v%26t%E7%80%F8%A3%82h%A12%1A%20%A3%01%02%0F%01%BA%25%06%00%19%C0%0D%AEF%D5%3ES%00%00%00%00IEND%AEB%60%82");background-repeat: no-repeat, repeat-x;background-position: center center, top left;color: transparent;border: 1px solid black;-moz-border-radius: 2px;-webkit-border-radius: 2px;border-radius: 2px;cursor: pointer;pointer-events: auto;}.ace_dark .ace_fold {}.ace_fold:hover{background-image:url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%11%00%00%00%09%08%06%00%00%00%D4%E8%C7%0C%00%00%03%1EiCCPICC%20Profile%00%00x%01%85T%DFk%D3P%14%FE%DAe%9D%B0%E1%8B%3Ag%11%09%3Eh%91ndStC%9C%B6kW%BA%CDZ%EA6%B7!H%9B%A6m%5C%9A%C6%24%ED~%B0%07%D9%8Bo%3A%C5w%F1%07%3E%F9%07%0C%D9%83o%7B%92%0D%C6%14a%F8%AC%88%22L%F6%22%B3%9E%9B4M'S%03%B9%F7%BB%DF%F9%EE9'%E7%E4%5E%A0%F9qZ%D3%14%2F%0F%14USO%C5%C2%FC%C4%E4%14%DF%F2%01%5E%1CC%2B%FChM%8B%86%16J%26G%40%0F%D3%B2y%EF%B3%F3%0E%1E%C6lt%EEo%DF%AB%FEc%D5%9A%95%0C%11%F0%1C%20%BE%945%C4%22%E1Y%A0i%5C%D4t%13%E0%D6%89%EF%9D15%C2%CDLsX%A7%04%09%1Fg8oc%81%E1%8C%8D%23%96f45%40%9A%09%C2%07%C5B%3AK%B8%408%98i%E0%F3%0D%D8%CE%81%14%E4'%26%A9%92.%8B%3C%ABER%2F%E5dE%B2%0C%F6%F0%1Fs%83%F2_%B0%A8%94%E9%9B%AD%E7%10%8Dm%9A%19N%D1%7C%8A%DE%1F9%7Dp%8C%E6%00%D5%C1%3F_%18%BDA%B8%9DpX6%E3%A35~B%CD%24%AE%11%26%BD%E7%EEti%98%EDe%9A%97Y)%12%25%1C%24%BCbT%AE3li%E6%0B%03%89%9A%E6%D3%ED%F4P%92%B0%9F4%BF43Y%F3%E3%EDP%95%04%EB1%C5%F5%F6KF%F4%BA%BD%D7%DB%91%93%07%E35%3E%A7)%D6%7F%40%FE%BD%F7%F5r%8A%E5y%92%F0%EB%B4%1E%8D%D5%F4%5B%92%3AV%DB%DB%E4%CD%A6%23%C3%C4wQ%3F%03HB%82%8E%1Cd(%E0%91B%0Ca%9Ac%C4%AA%F8L%16%19%22J%A4%D2itTy%B28%D6%3B(%93%96%ED%1CGx%C9_%0E%B8%5E%16%F5%5B%B2%B8%F6%E0%FB%9E%DD%25%D7%8E%BC%15%85%C5%B7%A3%D8Q%ED%B5%81%E9%BA%B2%13%9A%1B%7Fua%A5%A3n%E17%B9%E5%9B%1Bm%AB%0B%08Q%FE%8A%E5%B1H%5Ee%CAO%82Q%D7u6%E6%90S%97%FCu%0B%CF2%94%EE%25v%12X%0C%BA%AC%F0%5E%F8*l%0AO%85%17%C2%97%BF%D4%C8%CE%DE%AD%11%CB%80q%2C%3E%AB%9ES%CD%C6%EC%25%D2L%D2%EBd%B8%BF%8A%F5B%C6%18%F9%901CZ%9D%BE%24M%9C%8A9%F2%DAP%0B'%06w%82%EB%E6%E2%5C%2F%D7%07%9E%BB%CC%5D%E1%FA%B9%08%AD.r%23%8E%C2%17%F5E%7C!%F0%BE3%BE%3E_%B7o%88a%A7%DB%BE%D3d%EB%A31Z%EB%BB%D3%91%BA%A2%B1z%94%8F%DB'%F6%3D%8E%AA%13%19%B2%B1%BE%B1~V%08%2B%B4%A2cjJ%B3tO%00%03%25mN%97%F3%05%93%EF%11%84%0B%7C%88%AE-%89%8F%ABbW%90O%2B%0Ao%99%0C%5E%97%0CI%AFH%D9.%B0%3B%8F%ED%03%B6S%D6%5D%E6i_s9%F3*p%E9%1B%FD%C3%EB.7U%06%5E%19%C0%D1s.%17%A03u%E4%09%B0%7C%5E%2C%EB%15%DB%1F%3C%9E%B7%80%91%3B%DBc%AD%3Dma%BA%8B%3EV%AB%DBt.%5B%1E%01%BB%0F%AB%D5%9F%CF%AA%D5%DD%E7%E4%7F%0Bx%A3%FC%06%A9%23%0A%D6%C2%A1_2%00%00%00%09pHYs%00%00%0B%13%00%00%0B%13%01%00%9A%9C%18%00%00%00%B5IDAT(%15%A5%91%3D%0E%02!%10%85ac%E1%05%D6%CE%D6%C6%CE%D2%E8%ED%CD%DE%C0%C6%D6N.%E0V%F8%3D%9Ca%891XH%C2%BE%D9y%3F%90!%E6%9C%C3%BFk%E5%011%C6-%F5%C8N%04%DF%BD%FF%89%DFt%83DN%60%3E%F3%AB%A0%DE%1A%5Dg%BE%10Q%97%1B%40%9C%A8o%10%8F%5E%828%B4%1B%60%87%F6%02%26%85%1Ch%1E%C1%2B%5Bk%FF%86%EE%B7j%09%9A%DA%9B%ACe%A3%F9%EC%DA!9%B4%D5%A6%81%86%86%98%CC%3C%5B%40%FA%81%B3%E9%CB%23%94%C16Azo%05%D4%E1%C1%95a%3B%8A'%A0%E8%CC%17%22%85%1D%BA%00%A2%FA%DC%0A%94%D1%D1%8D%8B%3A%84%17B%C7%60%1A%25Z%FC%8D%00%00%00%00IEND%AEB%60%82"),url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%05%00%00%007%08%06%00%00%00%C4%DD%80C%00%00%03%1EiCCPICC%20Profile%00%00x%01%85T%DFk%D3P%14%FE%DAe%9D%B0%E1%8B%3Ag%11%09%3Eh%91ndStC%9C%B6kW%BA%CDZ%EA6%B7!H%9B%A6m%5C%9A%C6%24%ED~%B0%07%D9%8Bo%3A%C5w%F1%07%3E%F9%07%0C%D9%83o%7B%92%0D%C6%14a%F8%AC%88%22L%F6%22%B3%9E%9B4M'S%03%B9%F7%BB%DF%F9%EE9'%E7%E4%5E%A0%F9qZ%D3%14%2F%0F%14USO%C5%C2%FC%C4%E4%14%DF%F2%01%5E%1CC%2B%FChM%8B%86%16J%26G%40%0F%D3%B2y%EF%B3%F3%0E%1E%C6lt%EEo%DF%AB%FEc%D5%9A%95%0C%11%F0%1C%20%BE%945%C4%22%E1Y%A0i%5C%D4t%13%E0%D6%89%EF%9D15%C2%CDLsX%A7%04%09%1Fg8oc%81%E1%8C%8D%23%96f45%40%9A%09%C2%07%C5B%3AK%B8%408%98i%E0%F3%0D%D8%CE%81%14%E4'%26%A9%92.%8B%3C%ABER%2F%E5dE%B2%0C%F6%F0%1Fs%83%F2_%B0%A8%94%E9%9B%AD%E7%10%8Dm%9A%19N%D1%7C%8A%DE%1F9%7Dp%8C%E6%00%D5%C1%3F_%18%BDA%B8%9DpX6%E3%A35~B%CD%24%AE%11%26%BD%E7%EEti%98%EDe%9A%97Y)%12%25%1C%24%BCbT%AE3li%E6%0B%03%89%9A%E6%D3%ED%F4P%92%B0%9F4%BF43Y%F3%E3%EDP%95%04%EB1%C5%F5%F6KF%F4%BA%BD%D7%DB%91%93%07%E35%3E%A7)%D6%7F%40%FE%BD%F7%F5r%8A%E5y%92%F0%EB%B4%1E%8D%D5%F4%5B%92%3AV%DB%DB%E4%CD%A6%23%C3%C4wQ%3F%03HB%82%8E%1Cd(%E0%91B%0Ca%9Ac%C4%AA%F8L%16%19%22J%A4%D2itTy%B28%D6%3B(%93%96%ED%1CGx%C9_%0E%B8%5E%16%F5%5B%B2%B8%F6%E0%FB%9E%DD%25%D7%8E%BC%15%85%C5%B7%A3%D8Q%ED%B5%81%E9%BA%B2%13%9A%1B%7Fua%A5%A3n%E17%B9%E5%9B%1Bm%AB%0B%08Q%FE%8A%E5%B1H%5Ee%CAO%82Q%D7u6%E6%90S%97%FCu%0B%CF2%94%EE%25v%12X%0C%BA%AC%F0%5E%F8*l%0AO%85%17%C2%97%BF%D4%C8%CE%DE%AD%11%CB%80q%2C%3E%AB%9ES%CD%C6%EC%25%D2L%D2%EBd%B8%BF%8A%F5B%C6%18%F9%901CZ%9D%BE%24M%9C%8A9%F2%DAP%0B'%06w%82%EB%E6%E2%5C%2F%D7%07%9E%BB%CC%5D%E1%FA%B9%08%AD.r%23%8E%C2%17%F5E%7C!%F0%BE3%BE%3E_%B7o%88a%A7%DB%BE%D3d%EB%A31Z%EB%BB%D3%91%BA%A2%B1z%94%8F%DB'%F6%3D%8E%AA%13%19%B2%B1%BE%B1~V%08%2B%B4%A2cjJ%B3tO%00%03%25mN%97%F3%05%93%EF%11%84%0B%7C%88%AE-%89%8F%ABbW%90O%2B%0Ao%99%0C%5E%97%0CI%AFH%D9.%B0%3B%8F%ED%03%B6S%D6%5D%E6i_s9%F3*p%E9%1B%FD%C3%EB.7U%06%5E%19%C0%D1s.%17%A03u%E4%09%B0%7C%5E%2C%EB%15%DB%1F%3C%9E%B7%80%91%3B%DBc%AD%3Dma%BA%8B%3EV%AB%DBt.%5B%1E%01%BB%0F%AB%D5%9F%CF%AA%D5%DD%E7%E4%7F%0Bx%A3%FC%06%A9%23%0A%D6%C2%A1_2%00%00%00%09pHYs%00%00%0B%13%00%00%0B%13%01%00%9A%9C%18%00%00%003IDAT8%11c%FC%FF%FF%7F%3E%03%1A%60%01%F2%3F%A3%891%80%04%FFQ%26%F8w%C0%B43%A1%DB%0C%E2%8F%0A%A2%85%CAh%80%8C%06%08%3C%04%E8%96%18%00%A3S%0D%CD%CF%D8%C1%9D%00%00%00%00IEND%AEB%60%82");background-repeat: no-repeat, repeat-x;background-position: center center, top left;}.ace_gutter-tooltip {background-color: #FFF;background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.1));background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));border: 1px solid gray;border-radius: 1px;box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);color: black;display: inline-block;max-width: 500px;padding: 4px;position: fixed;z-index: 999999;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;cursor: default;white-space: pre-line;word-wrap: break-word;line-height: normal;font-style: normal;font-weight: normal;letter-spacing: normal;}.ace_folding-enabled > .ace_gutter-cell {padding-right: 13px;}.ace_fold-widget {-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;margin: 0 -12px 0 1px;display: none;width: 11px;vertical-align: top;background-image: url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%05%00%00%00%05%08%06%00%00%00%8Do%26%E5%00%00%004IDATx%DAe%8A%B1%0D%000%0C%C2%F2%2CK%96%BC%D0%8F9%81%88H%E9%D0%0E%96%C0%10%92%3E%02%80%5E%82%E4%A9*-%EEsw%C8%CC%11%EE%96w%D8%DC%E9*Eh%0C%151(%00%00%00%00IEND%AEB%60%82");background-repeat: no-repeat;background-position: center;border-radius: 3px;border: 1px solid transparent;cursor: pointer;}.ace_folding-enabled .ace_fold-widget {display: inline-block;   }.ace_fold-widget.ace_end {background-image: url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%05%00%00%00%05%08%06%00%00%00%8Do%26%E5%00%00%004IDATx%DAm%C7%C1%09%000%08C%D1%8C%ECE%C8E(%8E%EC%02)%1EZJ%F1%C1'%04%07I%E1%E5%EE%CAL%F5%A2%99%99%22%E2%D6%1FU%B5%FE0%D9x%A7%26Wz5%0E%D5%00%00%00%00IEND%AEB%60%82");}.ace_fold-widget.ace_closed {background-image: url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%03%00%00%00%06%08%06%00%00%00%06%E5%24%0C%00%00%009IDATx%DA5%CA%C1%09%000%08%03%C0%AC*(%3E%04%C1%0D%BA%B1%23%A4Uh%E0%20%81%C0%CC%F8%82%81%AA%A2%AArGfr%88%08%11%11%1C%DD%7D%E0%EE%5B%F6%F6%CB%B8%05Q%2F%E9tai%D9%00%00%00%00IEND%AEB%60%82");}.ace_fold-widget:hover {border: 1px solid rgba(0, 0, 0, 0.3);background-color: rgba(255, 255, 255, 0.2);-moz-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);-webkit-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);box-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);}.ace_fold-widget:active {border: 1px solid rgba(0, 0, 0, 0.4);background-color: rgba(0, 0, 0, 0.05);-moz-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);-webkit-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);box-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);}/*** Dark version for fold widgets*/.ace_dark .ace_fold-widget {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHklEQVQIW2P4//8/AzoGEQ7oGCaLLAhWiSwB146BAQCSTPYocqT0AAAAAElFTkSuQmCC");}.ace_dark .ace_fold-widget.ace_end {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAH0lEQVQIW2P4//8/AxQ7wNjIAjDMgC4AxjCVKBirIAAF0kz2rlhxpAAAAABJRU5ErkJggg==");}.ace_dark .ace_fold-widget.ace_closed {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAAFCAYAAACAcVaiAAAAHElEQVQIW2P4//+/AxAzgDADlOOAznHAKgPWAwARji8UIDTfQQAAAABJRU5ErkJggg==");}.ace_dark .ace_fold-widget:hover {box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);background-color: rgba(255, 255, 255, 0.1);}.ace_dark .ace_fold-widget:active {-moz-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);-webkit-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);}.ace_fold-widget.ace_invalid {background-color: #FFB4B4;border-color: #DE5555;}.ace_fade-fold-widgets .ace_fold-widget {-moz-transition: opacity 0.4s ease 0.05s;-webkit-transition: opacity 0.4s ease 0.05s;-o-transition: opacity 0.4s ease 0.05s;-ms-transition: opacity 0.4s ease 0.05s;transition: opacity 0.4s ease 0.05s;opacity: 0;}.ace_fade-fold-widgets:hover .ace_fold-widget {-moz-transition: opacity 0.05s ease 0.05s;-webkit-transition: opacity 0.05s ease 0.05s;-o-transition: opacity 0.05s ease 0.05s;-ms-transition: opacity 0.05s ease 0.05s;transition: opacity 0.05s ease 0.05s;opacity:1;}.ace_underline {text-decoration: underline;}.ace_bold {font-weight: bold;}.ace_nobold .ace_bold {font-weight: normal;}.ace_italic {font-style: italic;}.ace_error-marker {background-color: rgba(255, 0, 0,0.2);position: absolute;z-index: 9;}.ace_highlight-marker {background-color: rgba(255, 255, 0,0.2);position: absolute;z-index: 8;}</style><style id="ace-tm">.ace-tm .ace_gutter {background: #f0f0f0;color: #333;}.ace-tm .ace_print-margin {width: 1px;background: #e8e8e8;}.ace-tm .ace_fold {background-color: #6B72E6;}.ace-tm {background-color: #FFFFFF;}.ace-tm .ace_cursor {color: black;}.ace-tm .ace_invisible {color: rgb(191, 191, 191);}.ace-tm .ace_storage,.ace-tm .ace_keyword {color: blue;}.ace-tm .ace_constant {color: rgb(197, 6, 11);}.ace-tm .ace_constant.ace_buildin {color: rgb(88, 72, 246);}.ace-tm .ace_constant.ace_language {color: rgb(88, 92, 246);}.ace-tm .ace_constant.ace_library {color: rgb(6, 150, 14);}.ace-tm .ace_invalid {background-color: rgba(255, 0, 0, 0.1);color: red;}.ace-tm .ace_support.ace_function {color: rgb(60, 76, 114);}.ace-tm .ace_support.ace_constant {color: rgb(6, 150, 14);}.ace-tm .ace_support.ace_type,.ace-tm .ace_support.ace_class {color: rgb(109, 121, 222);}.ace-tm .ace_keyword.ace_operator {color: rgb(104, 118, 135);}.ace-tm .ace_string {color: rgb(3, 106, 7);}.ace-tm .ace_comment {color: rgb(76, 136, 107);}.ace-tm .ace_comment.ace_doc {color: rgb(0, 102, 255);}.ace-tm .ace_comment.ace_doc.ace_tag {color: rgb(128, 159, 191);}.ace-tm .ace_constant.ace_numeric {color: rgb(0, 0, 205);}.ace-tm .ace_variable {color: rgb(49, 132, 149);}.ace-tm .ace_xml-pe {color: rgb(104, 104, 91);}.ace-tm .ace_entity.ace_name.ace_function {color: #0000A2;}.ace-tm .ace_heading {color: rgb(12, 7, 255);}.ace-tm .ace_list {color:rgb(185, 6, 144);}.ace-tm .ace_meta.ace_tag {color:rgb(0, 22, 142);}.ace-tm .ace_string.ace_regex {color: rgb(255, 0, 0)}.ace-tm .ace_marker-layer .ace_selection {background: rgb(181, 213, 255);}.ace-tm.ace_multiselect .ace_selection.ace_start {box-shadow: 0 0 3px 0px white;border-radius: 2px;}.ace-tm .ace_marker-layer .ace_step {background: rgb(252, 255, 0);}.ace-tm .ace_marker-layer .ace_stack {background: rgb(164, 229, 101);}.ace-tm .ace_marker-layer .ace_bracket {margin: -1px 0 0 -1px;border: 1px solid rgb(192, 192, 192);}.ace-tm .ace_marker-layer .ace_active-line {background: rgba(0, 0, 0, 0.07);}.ace-tm .ace_gutter-active-line {background-color : #dcdcdc;}.ace-tm .ace_marker-layer .ace_selected-word {background: rgb(250, 250, 255);border: 1px solid rgb(200, 200, 250);}.ace-tm .ace_indent-guide {background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bLly//BwAmVgd1/w11/gAAAABJRU5ErkJggg==") right repeat-y;}</style><style>    .error_widget_wrapper {        background: inherit;        color: inherit;        border:none    }    .error_widget {        border-top: solid 2px;        border-bottom: solid 2px;        margin: 5px 0;        padding: 10px 40px;        white-space: pre-wrap;    }    .error_widget.ace_error, .error_widget_arrow.ace_error{        border-color: #ff5a5a    }    .error_widget.ace_warning, .error_widget_arrow.ace_warning{        border-color: #F1D817    }    .error_widget.ace_info, .error_widget_arrow.ace_info{        border-color: #5a5a5a    }    .error_widget.ace_ok, .error_widget_arrow.ace_ok{        border-color: #5aaa5a    }    .error_widget_arrow {        position: absolute;        border: solid 5px;        border-top-color: transparent!important;        border-right-color: transparent!important;        border-left-color: transparent!important;        top: -5px;    }</style><style>html.turbolinks-progress-bar::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  background-color: #0076ff;
+  height: 3px;
+  opacity: 0.99;
+  width: 0%;
+  transition: width 0ms ease-out, opacity 0ms ease-in;
+  transform: translate3d(0,0,0);
+}</style>
+<meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="jxioXYjTwrwj+K6k4aCwLPqiKpIGsE36RxWX0O5naSDNAUTp8m3aEJLooRytBkHcW9sgq0i5LWgGyKRj8moh4Q==">
+<script>
+//<![CDATA[
+window.gon={};gon.api_version="v3";gon.default_avatar_url="https://gitlab.ucloudadmin.com/assets/no_avatar-07eeb128b993e74003e8664cff0b8e1e7234cec0443766a6763df32ca3472c23.png";gon.default_issues_tracker="gitlab";gon.max_file_size=200;gon.relative_url_root="";gon.user_color_scheme="white";gon.current_user_id=473;gon.api_token="ZRZruwj4kszzWcnypjuJ";
+//]]>
+</script>
+<meta content="origin-when-cross-origin" name="referrer">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+<meta content="#474D57" name="theme-color">
+<link rel="apple-touch-icon" type="image/x-icon" href="https://gitlab.ucloudadmin.com/assets/touch-icon-iphone-2d64ecc33893baab71adc15ff19a803a59911cc2651fb9d4d62af1379ff89aab.png">
+<link rel="apple-touch-icon" type="image/x-icon" href="https://gitlab.ucloudadmin.com/assets/touch-icon-ipad-d08897d57e1bc9400024ac15465340e832a8e7b166b91624138d48ea2c739596.png" sizes="76x76">
+<link rel="apple-touch-icon" type="image/x-icon" href="https://gitlab.ucloudadmin.com/assets/touch-icon-iphone-retina-81446c57f3351d1dacd0fb5f23ced74ba63d3878810bedea343999c6a12b3915.png" sizes="120x120">
+<link rel="apple-touch-icon" type="image/x-icon" href="https://gitlab.ucloudadmin.com/assets/touch-icon-ipad-retina-e2a776da039936ac240e76615add47b25ab77c75a5fa2d1b3907f83d5502b911.png" sizes="152x152">
+<link color="rgb(226, 67, 41)" href="https://gitlab.ucloudadmin.com/assets/logo-d36b5212042cebc89b96df4bf6ac24e43db316143e89926c0db839ff694d2de4.svg" rel="mask-icon">
+<meta content="/assets/msapplication-tile-49c9c46afd2ab9bbf35e69138bc62f8c31fa55584bd494956ac6e58e6aadc813.png" name="msapplication-TileImage">
+<meta content="#30353E" name="msapplication-TileColor">
+<link rel="alternate" type="application/atom+xml" title="ucsd-udisk activity" href="https://gitlab.ucloudadmin.com/groups/ucsd-udisk.atom?private_token=ZRZruwj4kszzWcnypjuJ">
+
+
+
+
+<style>
+  [data-user-is] {
+    display: none !important;
+  }
+  
+  [data-user-is="473"] {
+    display: block !important;
+  }
+  
+  [data-user-is="473"][data-display="inline"] {
+    display: inline !important;
+  }
+  
+  [data-user-is-not] {
+    display: block !important;
+  }
+  
+  [data-user-is-not][data-display="inline"] {
+    display: inline !important;
+  }
+  
+  [data-user-is-not="473"] {
+    display: none !important;
+  }
+</style>
+
+</head>
+
+<body class="ui_charcoal" data-page="projects:wikis:show">
+<script>
+  window.project_uploads_path = "/ucsd-udisk/udisk/uploads";
+  window.markdown_preview_path = "/ucsd-udisk/udisk/markdown_preview";
+</script>
+
+<header class="header-expanded navbar navbar-fixed-top navbar-gitlab">
+<div class="container-fluid">
+<div class="header-content">
+<button class="navbar-toggle" type="button">
+<span class="sr-only">Toggle navigation</span>
+<i class="fa fa-bars"></i>
+</button>
+<div class="navbar-collapse collapse">
+<ul class="nav navbar-nav">
+<li class="hidden-sm hidden-xs">
+<div class="search">
+<form class="navbar-form pull-left" action="https://gitlab.ucloudadmin.com/search" accept-charset="UTF-8" method="get"><input name="utf8" type="hidden" value="✓">
+<input type="search" name="search" id="search" placeholder="Search" class="search-input form-control ui-autocomplete-input" spellcheck="false" tabindex="1" autocomplete="off" value="">
+<input type="hidden" name="group_id" id="group_id">
+<input type="hidden" name="project_id" id="project_id" value="2745">
+<input type="hidden" name="scope" id="scope" value="wiki_blobs">
+<input type="hidden" name="repository_ref" id="repository_ref">
+
+<div class="search-autocomplete-opts hide" data-autocomplete-path="/search/autocomplete" data-autocomplete-project-id="2745"></div>
+</form>
+
+</div>
+<script>
+  $('.search-input').on('keyup', function(e) {
+    if (e.keyCode == 27) {
+      $('.search-input').blur();
+    }
+  });
+</script>
+
+</li>
+<li class="visible-sm visible-xs">
+<a title="Search" data-toggle="tooltip" data-placement="bottom" data-container="body" href="https://gitlab.ucloudadmin.com/search"><i class="fa fa-search"></i>
+</a></li>
+<li>
+<a title="Todos" data-toggle="tooltip" data-placement="bottom" data-container="body" href="https://gitlab.ucloudadmin.com/dashboard/todos"><span class="badge todos-pending-count">
+5
+</span>
+</a></li>
+<li>
+<a title="New project" data-toggle="tooltip" data-placement="bottom" data-container="body" href="https://gitlab.ucloudadmin.com/projects/new"><i class="fa fa-plus fa-fw"></i>
+</a></li>
+<li>
+<a class="logout" title="Sign out" data-toggle="tooltip" data-placement="bottom" data-container="body" rel="nofollow" data-method="delete" href="https://gitlab.ucloudadmin.com/users/sign_out"><i class="fa fa-sign-out"></i>
+</a></li>
+</ul>
+</div>
+<h1 class="title"><a href="https://gitlab.ucloudadmin.com/groups/ucsd-udisk">ucsd-udisk</a> / <a class="project-item-select-holder" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk">udisk<div class="select2-container project-item-select js-projects-dropdown ajax-project-select" id="s2id_project_path"><a href="javascript:void(0)" class="select2-choice select2-default" tabindex="-1">   <span class="select2-chosen" id="select2-chosen-6">Search for project</span><abbr class="select2-search-choice-close"></abbr>   <span class="select2-arrow" role="presentation"><b role="presentation"></b></span></a><label for="s2id_autogen6" class="select2-offscreen"></label><input class="select2-focusser select2-offscreen" type="text" aria-haspopup="true" role="button" aria-labelledby="select2-chosen-6" id="s2id_autogen6"><div class="select2-drop select2-display-none ajax-project-dropdown select2-with-searchbox">   <div class="select2-search">       <label for="s2id_autogen6_search" class="select2-offscreen"></label>       <input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="select2-input" role="combobox" aria-expanded="true" aria-autocomplete="list" aria-owns="select2-results-6" id="s2id_autogen6_search" placeholder="">   </div>   <ul class="select2-results" role="listbox" id="select2-results-6">   </ul></div></div><input type="hidden" name="project_path" id="project_path" class="project-item-select js-projects-dropdown ajax-project-select" data-include-groups="false" data-order-by="last_activity_at" tabindex="-1" title="" style="display: none;"></a><i class="fa fa-chevron-down dropdown-toggle-caret js-projects-dropdown-toggle"></i> · <a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/home">Wiki</a></h1>
+</div>
+</div>
+</header>
+
+<script>
+  var findFileURL = "/ucsd-udisk/udisk/find_file/master";
+</script>
+
+<div class="page-sidebar-expanded page-with-sidebar">
+
+
+<div class="nicescroll sidebar-expanded sidebar-wrapper" tabindex="6" style="overflow: hidden; outline: none;">
+<div class="header-logo">
+<a id="logo">
+<svg width="36" height="36" id="tanuki-logo">
+  <path id="tanuki-right-ear" class="tanuki-shape" fill="#e24329" d="M2 14l9.38 9v-9l-4-12.28c-.205-.632-1.176-.632-1.38 0z"></path>
+  <path id="tanuki-left-ear" class="tanuki-shape" fill="#e24329" d="M34 14l-9.38 9v-9l4-12.28c.205-.632 1.176-.632 1.38 0z"></path>
+  <path id="tanuki-nose" class="tanuki-shape" fill="#e24329" d="M18,34.38 3,14 33,14 Z"></path>
+  <path id="tanuki-right-eye" class="tanuki-shape" fill="#fc6d26" d="M18,34.38 11.38,14 2,14 6,25Z"></path>
+  <path id="tanuki-left-eye" class="tanuki-shape" fill="#fc6d26" d="M18,34.38 24.62,14 34,14 30,25Z"></path>
+  <path id="tanuki-right-cheek" class="tanuki-shape" fill="#fca326" d="M2 14L.1 20.16c-.18.565 0 1.2.5 1.56l17.42 12.66z"></path>
+  <path id="tanuki-left-cheek" class="tanuki-shape" fill="#fca326" d="M34 14l1.9 6.16c.18.565 0 1.2-.5 1.56L18 34.38z"></path>
+</svg>
+
+</a>
+<a class="gitlab-text-container-link" title="Dashboard" id="js-shortcuts-home" href="https://gitlab.ucloudadmin.com/"><div class="gitlab-text-container">
+<h3>GitLab</h3>
+</div>
+</a></div>
+<ul class="nav nav-sidebar">
+<li class=""><a title="Go to group" class="back-link" href="https://gitlab.ucloudadmin.com/groups/ucsd-udisk"><i class="fa fa-caret-square-o-left fa-fw"></i>
+<span>
+Go to group
+</span>
+</a></li><li class="separate-item"></li>
+<li class="home"><a title="Project" class="shortcuts-project" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk"><i class="fa fa-bookmark fa-fw"></i>
+<span>
+Project
+</span>
+</a></li><li class=""><a title="Activity" class="shortcuts-project-activity" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/activity"><i class="fa fa-dashboard fa-fw"></i>
+<span>
+Activity
+</span>
+</a></li><li class=""><a title="Files" class="shortcuts-tree" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/tree/master"><i class="fa fa-files-o fa-fw"></i>
+<span>
+Files
+</span>
+</a></li><li class=""><a title="Commits" class="shortcuts-commits" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/commits/master"><i class="fa fa-history fa-fw"></i>
+<span>
+Commits
+</span>
+</a></li><li class=""><a title="Builds" class="shortcuts-builds" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/builds"><i class="fa fa-cubes fa-fw"></i>
+<span>
+Builds
+<span class="count builds_counter">0</span>
+</span>
+</a></li><li class=""><a title="Graphs" class="shortcuts-graphs" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/graphs/master"><i class="fa fa-area-chart fa-fw"></i>
+<span>
+Graphs
+</span>
+</a></li><li class=""><a title="Milestones" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/milestones"><i class="fa fa-clock-o fa-fw"></i>
+<span>
+Milestones
+</span>
+</a></li><li class=""><a title="Issues" class="shortcuts-issues" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/issues"><i class="fa fa-exclamation-circle fa-fw"></i>
+<span>
+Issues
+<span class="count issue_counter">110</span>
+</span>
+</a></li><li class=""><a title="Merge Requests" class="shortcuts-merge_requests" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/merge_requests"><i class="fa fa-tasks fa-fw"></i>
+<span>
+Merge Requests
+<span class="count merge_counter">0</span>
+</span>
+</a></li><li class=""><a title="Members" class="team-tab tab" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/project_members"><i class="fa fa-users fa-fw"></i>
+<span>
+Members
+</span>
+</a></li><li class=""><a title="Labels" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/labels"><i class="fa fa-tags fa-fw"></i>
+<span>
+Labels
+</span>
+</a></li><li class="active"><a title="Wiki" class="shortcuts-wiki" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/home"><i class="fa fa-book fa-fw"></i>
+<span>
+Wiki
+</span>
+</a></li><li class=""><a title="Forks" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/forks"><i class="fa fa-code-fork fa-fw"></i>
+<span>
+Forks
+</span>
+</a></li><li class="separate-item"><a title="Settings" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/edit"><i class="fa fa-cogs fa-fw"></i>
+<span>
+Settings
+</span>
+</a></li><li class="hidden">
+<a title="Network" class="shortcuts-network" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/network/master">Network
+</a></li>
+</ul>
+
+<div class="collapse-nav">
+<a class="toggle-nav-collapse" title="Open/Close" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#"><i class="fa fa-angle-left"></i></a>
+
+</div>
+<a class="sidebar-user" title="Profile" href="https://gitlab.ucloudadmin.com/u/alan.ding"><img alt="Profile" class="avatar avatar s36" src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/0011b368a1add1ba7367e3130f4e91af">
+<div class="username">
+alan.ding
+</div>
+</a></div>
+<div class="content-wrapper">
+<div class="flash-container">
+</div>
+
+
+<div class="container-fluid container-limited">
+<div class="content">
+<div class="clearfix">
+
+<div class="top-area">
+<ul class="nav-links">
+<li class=""><a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/home">Home</a>
+</li><li class=""><a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/pages">Pages</a>
+</li><li class=""><a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/git_access">Git Access
+</a></li></ul>
+<div class="nav-controls">
+<a class="add-new-wiki btn btn-new" data-toggle="modal" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#modal-new-wiki"><i class="fa fa-plus"></i>
+New Page
+</a></div>
+</div>
+<div class="modal" id="modal-new-wiki">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<a class="close" data-dismiss="modal" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#">×</a>
+<h3 class="page-title">New Wiki Page</h3>
+</div>
+<div class="modal-body">
+<form class="new-wiki-page">
+<div class="form-group">
+<label for="new_wiki_path"><span>Page slug</span>
+</label><input type="text" name="new_wiki_path" id="new_wiki_path" placeholder="how-to-setup" class="form-control" required="required" data-wikis-path="/ucsd-udisk/udisk/wikis" autofocus="autofocus">
+</div>
+<div class="form-actions">
+<button name="button" type="submit" class="build-new-wiki btn btn-create">Create Page</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+
+<div class="top-area">
+<div class="nav-text">
+<strong>Udisk v4 设计文档</strong>
+<span class="wiki-last-edit-by">
+·
+last edited by bruce.li@ucloud.cn <time class="time_ago js-timeago" datetime="2019-05-08T05:53:39Z" title="May 8, 2019 1:53pm" data-toggle="tooltip" data-placement="top" data-container="body">about a year ago</time><script>
+//<![CDATA[
+$('.js-timeago-pending').removeClass('js-timeago-pending').timeago()
+//]]>
+</script>
+</span>
+</div>
+<div class="nav-controls">
+<a class="btn btn-grouped" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/history">Page History
+</a><a class="btn btn-grouped" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/edit"><i class="fa fa-pencil-square-o"></i>
+Edit
+</a><a data-confirm="Are you sure you want to delete this page?" class="btn btn-remove" rel="nofollow" data-method="delete" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3"><i class="fa fa-trash"></i>
+Delete
+</a>
+</div>
+</div>
+<div class="wiki-holder prepend-top-default">
+<div class="wiki">
+<h1>
+<a id="udisk新架构v4" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#udisk%E6%96%B0%E6%9E%B6%E6%9E%84v4" aria-hidden="true"></a>udisk新架构V4</h1>
+
+<p>架构图：<br>
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/image.png" alt="image"></p>
+
+<h2>
+<a id="主要的变化" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E4%B8%BB%E8%A6%81%E7%9A%84%E5%8F%98%E5%8C%96" aria-hidden="true"></a>主要的变化</h2>
+
+<ul>
+<li>取消接入层Proxy，取消逻辑盘索引，改用一致性哈希算法，物理分片从1G减小到16M，实际的物理空间由chunk服务自己管理。</li>
+<li>下层SSD能提供20W~25W IOPS，使用单个chunk服务(采用多线程)负责单块磁盘的读写</li>
+<li>底层从直接读写物理磁盘，换成文件系统，便于对磁盘空间的管理。</li>
+<li>取消对于Iscsi的支持，在需要在宿主机上挂载块设备的场景下通过NBD来实现，实际还是走gate。</li>
+<li>使用QoS算法，按逻辑盘容量提供IOPS和带宽的限制</li>
+<li>中心元数据存储采用3.4 MongoDB 提供高可用，强一致元数据存储。</li>
+</ul>
+
+<h2>
+<a id="性能指标" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87" aria-hidden="true"></a>性能指标</h2>
+
+<h3>
+<a id="ssd性能指标" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#ssd%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87" aria-hidden="true"></a>SSD性能指标</h3>
+
+<ul>
+<li>IOPS = min{1200 + 30 * 容量, 24000}</li>
+<li>吞吐量 = min{80 + 0.5 * 容量, 260} MBps</li>
+<li>延迟小于2ms</li>
+<li>QoS</li>
+</ul>
+
+<h3>
+<a id="sata机械盘性能指标" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#sata%E6%9C%BA%E6%A2%B0%E7%9B%98%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87" aria-hidden="true"></a>SATA机械盘性能指标</h3>
+
+<h2>
+<a id="模块及功能" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%A8%A1%E5%9D%97%E5%8F%8A%E5%8A%9F%E8%83%BD" aria-hidden="true"></a>模块及功能</h2>
+
+<ul>
+<li>MetaServer: 元数据管理模块，提供路由信息的管理和更新，实现创建，列表，回收，并监控整个集群的健康状况，控制chunk服务的上下线。</li>
+<li>gate: IO接入模块，处理从QEMU传出的IO，提供逻辑盘路由计算，转发IO至后端Chunk，方舟IO转发，旧版本功能兼容等功能。</li>
+<li>Chunk:管理底层文件系统空间，提供IO多副本读写，写时分配分片文件，读写错误上报，错误修复时数据同步。</li>
+<li>doctor: 修复模块，负责控制数据的同步。</li>
+<li>monitor：监控模块，接收集群的统计信息以及异常告警信息，</li>
+</ul>
+
+<h1>
+<a id="一致性hash算法" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%AE%97%E6%B3%95" aria-hidden="true"></a>一致性hash算法</h1>
+
+<h2>
+<a id="副本集3份冗余的划分" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E5%89%AF%E6%9C%AC%E9%9B%863%E4%BB%BD%E5%86%97%E4%BD%99%E7%9A%84%E5%88%92%E5%88%86" aria-hidden="true"></a>副本集（3份冗余）的划分</h2>
+
+<p>集群拓扑结构图：<br>
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/机器拓扑V4.png" alt="机器拓扑V4"></p>
+
+<p>将集群中的所有disk按Host和Rack交叉排列，按上图则排列成 Disk {1 7 3 9 5 11 2 8 4 10 6 12}，按连续的三个disk组成pgt(partion group tuple)，这三个磁盘分布在三个不同的Host，至少两个不同的Rack，按上图可以划分为如下pgt:</p>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>pgt_id0: disk {1  7  3}
+pgt_id1: disk {7  3  9}
+pgt_id2: disk {3  9  5}
+pgt_id3: disk {9  5 11}
+pgt_id4: disk {5  11  2}
+pgt_id5: disk {11  2  8}
+pgt_id6: disk {2   8  4}
+pgt_id7: disk {8   4 10}
+pgt_id8: disk {4  10  6}
+pgt_id9: disk {10   6  12}
+pgt_id10: disk {6   12  1}
+pgt_id11: disk {12   1  7}
+</code></pre>
+
+
+<p>为了使主副本均匀分布在三个chunk server上，将pgt分成3个pg(partion group), 这三个pg有相同的路由以及不同的主副本，pg作为物理节点分布在哈希环上。     </p>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>pg_id0: {pgt_id0，primary_chunk_id0}
+pg_id1: {pgt_id0，primary_chunk_id1}
+pg_id2: {pgt_id0，primary_chunk_id2}
+
+pg_id3: {pgt_id1，primary_chunk_id3}
+pg_id4: {pgt_id1，primary_chunk_id4}
+pg_id5: {pgt_id1，primary_chunk_id5}
+
+pg_id6: {pgt_id2，primary_chunk_id6}
+pg_id7: {pgt_id2，primary_chunk_id7}
+pg_id8: {pgt_id2，primary_chunk_id8}
+...
+</code></pre>
+
+
+<p>部署时为了能够将主打散到多台机器上至少需要5台机器，分别和前两台和后两台组成pg, 机器交叉然后，在每台机器逐次选一块盘，这样盘必然满足于前两个盘和后两个盘在不同的机器上，这样修复是占用的网卡流量分摊在最多4台机器上。<br>
+这种部署方式复ubs2的分配磁盘算法类似，只要容量最大的两个机架下的机器数相等，机器下的磁盘容量也相等，就能符合容灾要求(三个备份至少在两个机架)使用完所有的容量。</p>
+
+<h2>
+<a id="hash环生成" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#hash%E7%8E%AF%E7%94%9F%E6%88%90" aria-hidden="true"></a>hash环生成</h2>
+
+<p>hash环相关的三类参数</p>
+
+<ul>
+<li>pg_num: pg的个数，即物理节点的个数</li>
+<li>scale_num: 物理节点放大倍数，即为每个物理节点生成 scale_num个虚节点</li>
+<li>conflict_a conflict_b：冲突解决参数，当放置虚节点的时候有冲突时通过 key=a*hash(pg_id)+b , key=a*key+b ..., 直到冲突解决。</li>
+</ul>
+
+<p>假设有4个pg_num（蓝黄红绿,正常是三的整数倍），为每个pg生成4个虚拟节点，按如图方式放置在环上，当有来时，用lc_id+pcg_no计算hash，顺时针查找第一个虚节点，找到对应的路由。<br>
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/hash环V4.png" alt="hash环V4"></p>
+
+<h1>
+<a id="索引结构" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84" aria-hidden="true"></a>索引结构</h1>
+
+<h2>
+<a id="数据库中的collection结构" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84collection%E7%BB%93%E6%9E%84" aria-hidden="true"></a>数据库中的collection结构</h2>
+
+<ul>
+<li>t_cluster_info<br>
+</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight json white"><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_num</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">集群中的chunk个数，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">scale_num</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">每个chunk的个数的放大倍数，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">conflict_a</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk</span><span class="w"> </span><span class="err">hash冲突解决规则,</span><span class="w"> </span><span class="err">整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">conflict_b</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk</span><span class="w"> </span><span class="err">hash冲突解决规则,</span><span class="w"> </span><span class="err">整数</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></code></pre>
+
+
+<ul>
+<li>t_chunk_info<br>
+</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight json white"><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk的ID,整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">ip</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk的ip,字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">port</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk的port,字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">host</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk所在的host</span><span class="w"> </span><span class="err">ID,字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">rack</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk所在的host所在的rack</span><span class="w"> </span><span class="err">ID,字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">state</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">chunk的状态</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></code></pre>
+
+
+<ul>
+<li>t_pg_tuple_info<br>
+</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight json white"><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_tuple_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">整数而且必须按序增加</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_0_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_0_primary_chunk</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">pg_0的primary</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_1_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_1_primary_chunk</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">pg_1的primary</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_2_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">pg_2_primary_chunk</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">pg_2的primary</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="w">    </span><span class="err">chunk_0</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">第一个</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="w">    </span><span class="err">chunk_1</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">第二个</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="w">    </span><span class="err">chunk_2</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">第三个</span><span class="w"> </span><span class="err">chunk的ID</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></code></pre>
+
+
+<ul>
+<li>t_lc_info<br>
+</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight json white"><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的id，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">name</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的名字，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">size</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的大小，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">oid</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc所属的用户的OrganizationId，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">top_oid</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc所属的用户的TopOrganizationId，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">create_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的创建时间，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">throw_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc进回收站的时间</span><span class="w"></span>
+<span class="w">    </span><span class="err">delete_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc删除时间</span><span class="w"></span>
+<span class="w">    </span><span class="err">recycle_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc被回收时间</span><span class="w"></span>
+<span class="w">    </span><span class="err">last_attach_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的最近的一次挂载时间，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">last_detach_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的最近的一次卸载时间，整数</span><span class="w"></span>
+<span class="w">    </span><span class="err">last_resize_time</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的最近的一次的扩容时间，整数</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></code></pre>
+
+
+<ul>
+<li>t_gray_chunk_info</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight json white"><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">lc_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">lc的ID，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_0</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的母Chunk</span><span class="w"> </span><span class="err">0</span><span class="w"> </span><span class="err">ID，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_1</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的母Chunk</span><span class="w"> </span><span class="err">1</span><span class="w"> </span><span class="err">ID，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_2</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的母Chunk</span><span class="w"> </span><span class="err">2</span><span class="w"> </span><span class="err">ID，字符串</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_0_gray_chunk_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的Chunk</span><span class="w"> </span><span class="err">0</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_1_gray_chunk_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的Chunk</span><span class="w"> </span><span class="err">1</span><span class="w"></span>
+<span class="w">    </span><span class="err">mother_chunk_id_2_gray_chunk_id</span><span class="w"> </span><span class="err">:</span><span class="w"> </span><span class="err">灰度的Chunk</span><span class="w"> </span><span class="err">2</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></code></pre>
+
+
+<h1>
+<a id="io流程" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#io%E6%B5%81%E7%A8%8B" aria-hidden="true"></a>IO流程</h1>
+
+<h2>
+<a id="io协议及相关数据结构" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#io%E5%8D%8F%E8%AE%AE%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84" aria-hidden="true"></a>io协议及相关数据结构</h2>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>#define  MAX_PC_NAME_LEN 32// uuid(32)_pcg_no(10)
+struct udisk_gate_io_hdr
+{
+  uint32_t size;  //io size 包含头的大小
+  int8_t proto_version;  // gate 协议版本号
+  uint64_t pgp_version; //pgp 路由版本号
+  uint32_t cmd;   // io type : read write
+  uint64_t flowno; // io 编号
+  uint32_t fragno;  // io 分片号
+  uint32_t offset;  // io 在分片文件内的 offset
+  uint32_t length;  // 每次读写的文件长度, 读文件需要考虑
+  int8_t retcode;
+  char pc_name[MAX_PC_NAME_LEN]; //分片文件名 lc_id+pcg_no
+  uint32_t magic_num;  //
+} __attribute__((packed));
+
+struct vnode {
+  const uint32_t  pg_id;
+}
+
+struct pg_info {
+  uint32_t pg_id;
+  uint32_t chunk0_id;
+  uint32_t chunk1_id;
+  uint32_t chunk2_id
+  uint32_t primary_chunk_id;
+}
+
+struct chunk_info {  
+  string chunk_id;
+  string gray_chunk_id; //对应的灰度chunk id
+  string ip；
+  uint32_t port;
+  uint32_t state;
+  uint64_t conn_key;  // 由ip port 生成连接的key，不用每次计算 
+}</code></pre>
+
+
+<ul>
+<li>gate 通过对pc_name进行hash得到vnode 结构，通过vnode中的pgp_id 找到路由版本号，通过pg_id从pg_map中找到Primary_chunk_id，通过 chunk_map查找到对应的连接将IO发送出去</li>
+<li>chunk 收到IO后通过对pc_name进行hash查找到pg_id的Primary_chunk_id, 如果是自身，则写IO并进行转发到正常的从，否则只写本地后返回。</li>
+</ul>
+
+<h2>
+<a id="io失败处理" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#io%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86" aria-hidden="true"></a>IO失败处理</h2>
+
+<ul>
+<li>1） gate IO超时，超时后重发。</li>
+<li>2） gate IO失败，失败原因
+
+<ul>
+<li>路由版本不相等1s后重试, 因为心跳会在1s内更新路由</li>
+<li>EIO和磁盘超时错误3s后重试，这种错误需要上报MetaServer处理时间稍长。</li>
+<li>event error 1s后重试该链接上的所有等待的IO</li>
+</ul>
+</li>
+</ul>
+
+<h1>
+<a id="集群路由更新方式" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E9%9B%86%E7%BE%A4%E8%B7%AF%E7%94%B1%E6%9B%B4%E6%96%B0%E6%96%B9%E5%BC%8F" aria-hidden="true"></a>集群路由更新方式</h1>
+
+<p>集群路由在以下情况下会主动更新，需要依赖心跳下发</p>
+
+<ul>
+<li>MetaServer与某个chunk间的心跳丢失，并且互相结对的chunk也上报了该chunk心跳丢失</li>
+<li>chunk主动上报磁盘读写错误 (改为心跳上报)</li>
+<li>chunk上报读写磁盘超时，超过一定的次数 (改为心跳上报， 次数由metaserver确定，chunk磁盘超时就报故障)</li>
+<li>由于运维的需要，人工触发Chunk服务下线</li>
+<li>当新加磁盘或者机器时，新加Chunk服务上线。</li>
+</ul>
+
+<p>gate和chunk会上报心跳到MetaServer，上报时会带上各自的集群路由版本号，MetaServer根据版本号是否陈旧判端是否下发pgp路由，保证集群路由变化后所有chunk和gate能最终感知到。</p>
+
+<h2>
+<a id="集群路由下发到chunk" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E9%9B%86%E7%BE%A4%E8%B7%AF%E7%94%B1%E4%B8%8B%E5%8F%91%E5%88%B0chunk" aria-hidden="true"></a>集群路由下发到Chunk</h2>
+
+<p>Chunk通过心跳向MetaServer上报的ChunkInfo协议： </p>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>message ChunkHeartbeatRequest {
+  required PgpVersionInfo pgp_version_info;
+  required ChunkServerInfo chunk_info;
+}
+
+message ChunkServerInfo {
+    required uint32 chunk_id;
+    required uint32 chunk_state;
+    required uint32 logical_used_space; // chunk管理的空间的逻辑使用量
+    required uint32 total_space; // 总空间大小
+    required uint32 availabel_space; //  实际可用的空间大小
+}
+</code></pre>
+
+
+<p>Chunk心跳中会带上pgp_version，MetaServer 收到心跳后会比较每个chunk服务的pgp_version，如果已经陈旧,将最新的pgp路由返回给该chunk，并且带上最新的pgp_version。</p>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>message ChunkHeartbeatResponse {
+    optional PgpInfo pgp_info;
+    repeated ChunkRouteInfo chunk_route_info;
+}
+
+message PgpInfo {
+    required uint32 pgp_id;
+    required uint64 pgp_version; 
+    required string chunk_id0;
+    required string chunk_id1;
+    required string chunk_id2;
+    required string primary_chunk_id0;
+    required string primary_chunk_id1;
+    required string primary_chunk_id2;
+}
+
+message ChunkRouteInfo {
+  required string chunk_id;
+  required string ip;
+  required uint32 port;
+  required uint32 state;
+}
+</code></pre>
+
+
+<h2>
+<a id="集群路由下发到gate" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E9%9B%86%E7%BE%A4%E8%B7%AF%E7%94%B1%E4%B8%8B%E5%8F%91%E5%88%B0gate" aria-hidden="true"></a>集群路由下发到Gate</h2>
+
+<p>Gate到MetaServer的心跳会带上所有的pgp_version，MetaServer会将陈旧的pgp_verision对应的最新路由返回，并带上最新的版本号。</p>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>message GateHeartbeatRequest {
+    repeated PgpVersionInfo pgp_version_info;
+}
+
+message GateHeartbeatResponse {
+  repeated PgpInfo pgp_info;
+  repeated ChunkRouteInfo chunk_route_info;
+}
+</code></pre>
+
+
+<h1>
+<a id="故障上报" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%95%85%E9%9A%9C%E4%B8%8A%E6%8A%A5" aria-hidden="true"></a>故障上报</h1>
+
+<h2>
+<a id="1primary-eio或则副本返回eio" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#1primary-eio%E6%88%96%E5%88%99%E5%89%AF%E6%9C%AC%E8%BF%94%E5%9B%9Eeio" aria-hidden="true"></a>1、Primary EIO或则副本返回EIO</h2>
+
+<p>EIO是磁盘严重故障，出现则说明磁盘损坏，需要将对应磁盘从集群中剔除，EIO的具体处理流程如下：</p>
+
+<ul>
+<li>1）Primary Chunk发生EIO或则副本返回EIO后，返回Gate EIO</li>
+<li>2）Primary Chunk记录下EIO故障，然后由Chunk与MetaServer的heartbeat外带故障信息，告知MetaServer那个Chunk Server发生了EIO</li>
+<li>3）MetaServer收到Primary Chunk heartbeat外带的故障消息后，向后端数据库请求修改对应Chunk Server的状态，并增加对应的pg_pair_version</li>
+</ul>
+
+<h2>
+<a id="2primary-iotimeout副本timeout或则副本返回iotimeout" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#2primary-iotimeout%E5%89%AF%E6%9C%ACtimeout%E6%88%96%E5%88%99%E5%89%AF%E6%9C%AC%E8%BF%94%E5%9B%9Eiotimeout" aria-hidden="true"></a>2、Primary IOTimeout，副本Timeout或则副本返回IOTimeout</h2>
+
+<ul>
+<li>1）Primary Chunk发生IOTimeout或则复制IO超时，则返回GATE IOTimeout</li>
+<li>2）Primary Chunk记录下IOTimeout的信息，然后有Chunk与MetaServer的heartbeat外带故障信息，告知MetaServer哪个Chunk Server发生了IOTimeout</li>
+<li>3）MetaServer在收到Primary Chunk heartbeat外带的IOTimeout后，如果MetaServer第一次收到Timeout对应的Chunk的上报，则仅仅记录下来上报的时间，如果不是第一次上报的话，则比较当前时间和对应的Chunk第一次上报的时间，如果相差超过一定时间，则设置对应的超时计数为1，并将第一次超时时间设置为当前时间，如果未超过一定时间，判断超时计数是否超过一定次数，如果超过的话，则认为这个Chunk故障，需要将其移除集群，具体步骤是更新数据库中对应的chunk的状态，增加相关的pg_pair_version,并清理内存中相关的统计信息，如果未超过一定次数，则仅仅增加超时计数</li>
+</ul>
+
+<h1>
+<a id="故障修复" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%95%85%E9%9A%9C%E4%BF%AE%E5%A4%8D" aria-hidden="true"></a>故障修复</h1>
+
+<p>故障修复流程为:    </p>
+
+<ul>
+<li>1）loki 发送新chunk信息给metaserver，metaserver把新chunk加入到cluster_map, 并标记为ERROR状态.<br>
+</li>
+<li>2）loki服务发送修复chunk请求给metaserver，metaserver检查task表中是否有该chunk未执行完毕的修复任务，若有则直接返回异常，没有则标记该chunk为WriteOnly，并更新cluster_version.<br>
+</li>
+<li>3）loki服务拉取metaserver中的最新版本号，并记录.<br>
+</li>
+<li>4）获取新chunk所在pg的primary_chunk的cluster_version和新chunk的cluster_version, 与从metaserver处获取的最新cluster_version比较，直到与meteserver中cluster_version一致.<br>
+</li>
+<li>5）从新chunk所在pg的primary_chunk中拉取属于新chunk的所有文件。相同pg的文件都记录在pg_id目录下，直接遍历该目录下的文件即可。 loki服务对该chunk所在的每个pg、每个文件分别向task表、job表插入修复记录。需要实现在primary chunk或者loki服务重启情况下，修复任务可以继续执行。<br>
+</li>
+<li>6）存量文件和新增文件处理<br>
+在5中拉取所有chunk所属文件后，可能有新的写请求产生新增文件.<br>
+新增文件: 新chunk是WriteOnly状态，主chunk的写请求可以同步过来，可以保证新增写请求在新chunk上和primary_chunk一致.<br>
+存量文件: 执行下图中的数据同步流程<br>
+</li>
+<li><p>7）新chunk在修复过程中被标记下线，task表中任务无法继续执行，需要特殊处理.    </p></li>
+<li><p>pending问题：<br>
+<code>a、文件被删除时，需要及时发现
+b、任意一个IO是否都可以创建文件？</code></p></li>
+</ul>
+
+<p>PC修复控制流程：
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/修复控制流程V4.jpg" alt="修复控制流程V4"></p>
+
+<p>高性能架构下数据同步流程：
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/image(1).png" alt="image"></p>
+
+<ul>
+<li>1）loki想p_man_loop通知修复指定的PC</li>
+<li>2）p_man_loop 通知 s_man_loop pending前台IO，s_man_loop会同步的pending所有s_io_loop的IO</li>
+<li>3）收到s_man_loop的pending io的应答后，p_man_loop随机的选择一个p_io_loop开始修复</li>
+<li>4）p_man_loop通知p_io_loop 开始同步base数据</li>
+<li>5）p_io_loop和s_io_loop之间进行数据同步</li>
+<li>6）指定PC的base数据同步完成后，s_io_lop通知其他的s_io_loop开始merge pending buffer</li>
+<li>7）s_io_loop merge完成后通知s_man_loop， s_man_loop收到所有的通知后，应答3中的请求，表示修复完成。
+<em>注意</em>
+</li>
+<li>高性能gate 每个LC的IO通过多个连接发送，会分配到多个线程，在多个线程merge时，已经应答的IO会乱序（不同于并发IO的乱序）所以在gate中不能按每个io来轮询选择线程发送。在gate中将IO按TPC切割，通过为TPC编号做hash,分配到固定的gate线程。<br>
+</li>
+<li>由于修复的过程中可能会发生线程切换，导致同一个TPC可能在两个线程中发生merge, 如果发生这种情况，改PC修复失败。</li>
+</ul>
+
+<p>pending buffer合并流程：
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/数据同步流程V3.png" alt="数据同步流程V3"></p>
+
+<ul>
+<li>数据同步时，Primary的前台IO直接落磁盘，并且拷贝分片的全量数据到Secondary 分片，这种拷贝IO直接落 Secondary磁盘，但是对于由Primary转发过来的前台写IO，Secondary需要将其pending在内存的Buffer1里。</li>
+<li>当拷贝结束之后，检查Buffer1有哪些TPC（Tiny PC，数据修复时更小的粒度，暂定1M）写过，没有写过的TPC上的前台IO之后可以直接落磁盘，这个TPC的同步过程结束（蓝色块标识）。</li>
+<li>对于写过的TPC（红色块标识），将前台IO pending到Buffer2后，将内存Buffer1中对应的数据与磁盘数据进行merge。</li>
+<li>merge完所有的红色TPC后，检查Buffer2 是否有红色TPC，如果有将前台IO切回Buffer1，重复以上过程直至某次merge完成后没有红色TPC。</li>
+<li>
+<p>某个TPC有大量长时间的IO写时，TPC会持续红色，本次数据同步会超时失败。</p>
+
+<h1>
+<a id="灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>灰度</h1>
+
+<h2>
+<a id="gate服务灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#gate%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>GATE服务灰度</h2>
+
+<p>灰度目标：可以指定对应的lc到灰度的GATE服务上<br>
+灰度控制流程如下：<br>
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/QQ图片20171123194915.png" alt="QQ图片20171123194915">     </p>
+</li>
+<li><p>1） 向MetaServer请求灰度指定id的lc到灰度的Gate服务上，MetaServer收到Gate灰度请求后，通过Gate服务与MetaServer之间的heartbeat找到指定id的lc Gate服务所在的机器，从而找到对应的Gate Proxy服务（端口固定）</p></li>
+<li><p>2） MetaServer向Gate Proxy服务请求灰度指定id的lc到灰度Gate服务上，Gate Proxy服务收到请求后，Gate Proxy就设置lc的连接会被转发到灰度Gate服务上,并将灰度信息持久化（当重新连接的时候也可以应用灰度规则）</p></li>
+<li><p>3） MetaServer向原有的Gate服务请求其断开与Qemu的连接，使Qemu重新连接，这时如果lc连接到达Gate Proxy的时，Gate Proxy就会应用灰度规则将其转发到灰度Gate服务上    </p></li>
+</ul>
+
+<h2>
+<a id="协议灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E5%8D%8F%E8%AE%AE%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>协议灰度</h2>
+
+<p>代码内灰度</p>
+
+<h2>
+<a id="chunk服务灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#chunk%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>Chunk服务灰度</h2>
+
+<p><img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/QQ图片20171126180232.png" alt="QQ图片20171126180232">    </p>
+
+<h3>
+<a id="chunk服务灰度与io" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#chunk%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6%E4%B8%8Eio" aria-hidden="true"></a>Chunk服务灰度与IO</h3>
+
+<ul>
+<li><p>1）向MetaServer请求灰度一个逻辑盘,MetaServer将灰度信息持久化到数据库,并增加集群路由版本号</p></li>
+<li><p>2）MetaServer与Gate服务和Chunk服务的heartbeat会将这个灰度的信息传播到Gate服务和Chunk服务上</p></li>
+<li><p>3）如果Gate服务感知灰度信息后，灰度的lc的读写操作会应用灰度hash-ring,这样的话这个lc的io请求被发送到灰度的Chunk服务上</p></li>
+</ul>
+
+<h3>
+<a id="chunk服务灰度与故障上报" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#chunk%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6%E4%B8%8E%E6%95%85%E9%9A%9C%E4%B8%8A%E6%8A%A5" aria-hidden="true"></a>Chunk服务灰度与故障上报</h3>
+
+<p>Chunk服务上报的处理是相互独立的话，即gray Chunk服务故障后仅仅标记gray Chunk为故障，例如 Chunk服务 A, B, C,以及灰度Chunk A', B', C'，当前A'故障，B故障已经被标记，当灰度结束切换的时候，会将B故障信息覆盖,因此故障上报的时候，需要将母Chunk服务和灰度Chunk服务都标记故障，这样的话，问题是灰度Chunk的故障会影响到正常的Chunk服务</p>
+
+<h3>
+<a id="chunk服务灰度与物理资源管理" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#chunk%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6%E4%B8%8E%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86" aria-hidden="true"></a>Chunk服务灰度与物理资源管理</h3>
+
+<p>如果底层存储采用预分配（dd），然后由Chunk服务为LC分配物理分片。这样的话，灰度Chunk与母Chunk服务共享底层磁盘的物理分片，需要互斥的分配。初步讨论使用文件锁</p>
+
+<h3>
+<a id="chunk服务灰度与修复逻辑" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#chunk%E6%9C%8D%E5%8A%A1%E7%81%B0%E5%BA%A6%E4%B8%8E%E4%BF%AE%E5%A4%8D%E9%80%BB%E8%BE%91" aria-hidden="true"></a>Chunk服务灰度与修复逻辑</h3>
+
+<p>Loki修复模块会将灰度的lc的修复任务发送到灰度的Chunk服务上，由灰度的Chunk进行数据同步以及前端io的merge</p>
+
+<h2>
+<a id="性能监控模块monitor灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7%E6%A8%A1%E5%9D%97monitor%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>性能监控模块Monitor灰度</h2>
+
+<h2>
+<a id="修复模块doctor灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E4%BF%AE%E5%A4%8D%E6%A8%A1%E5%9D%97doctor%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>修复模块doctor灰度</h2>
+
+<h2>
+<a id="metaserver灰度" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#metaserver%E7%81%B0%E5%BA%A6" aria-hidden="true"></a>MetaServer灰度</h2>
+
+<h2>
+<a id="坏盘修复对应关系" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#%E5%9D%8F%E7%9B%98%E4%BF%AE%E5%A4%8D%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB" aria-hidden="true"></a>坏盘修复对应关系</h2>
+
+<p>坏盘修复对应关系的目的是，便于前端展示集群的坏盘修复情况，涉及到的修改包括： </p>
+
+<p><strong>mongodb</strong><br>
+坏盘修复对应关系复用数据库t_chunk_repair_task表，并在原表基础上扩充字段    </p>
+
+<ul>
+<li>t_chunk_repair_task<br>
+</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>原表结构：    
+{
+    id :           修复任务ID，字符串
+    bad_chunk :    新盘chunkid， 整数
+    create_time :  修复任务创建时间， 整数
+}
+
+
+扩充后表结构：    
+{
+    id :             修复任务ID， 字符串
+    bad_chunkid :    坏盘chunkid， 整数
+    bad_chunkip :    坏盘ip， 字符串
+    bad_uuid :       坏盘uuid（创建文件系统后 通过blkid获取）， 字符串
+    new_chunkid :    新盘chunkid,   //对应原表中bad_chunk字段， 整数
+    new_chunkip :    新盘ip， 字符串
+    new_uuid :       新盘uuid（创建文件系统后 通过blkid获取）， 字符串
+    status :         修复状态：2 修复中，1 修复完成， 整数
+    create_time :    修复任务创建时间， 整数
+}</code></pre>
+
+
+<p><strong>message协议修改</strong>    </p>
+
+<ul>
+<li>LokiRepairChunkPrepareRequest</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>原协议：
+message LokiRepairChunkPrepareRequest {
+    required uint32 bad_chunk_id = 10;
+    optional uint32 new_chunk_id = 20;
+};
+
+新协议：
+message LokiRepairChunkPrepareRequest {
+    required uint32 bad_chunk_id = 10;
+    required uint32 new_chunk_id = 20;
+    optional string bad_chunkip  = 30;
+    optional string bad_uuid     = 40;
+    optional string new_chunkip  = 50;
+    optional string new_uuid     = 60;
+    optional uint32 status       = 70;
+};</code></pre>
+
+
+<ul>
+<li>ChunkRepairTaskInfoPb</li>
+</ul>
+
+<pre class="code highlight js-syntax-highlight plaintext white"><code>原协议：
+message ChunkRepairTaskInfoPb {
+  required string id = 10;
+  required uint32 bad_chunk = 20;
+  required uint64 create_time = 30;
+};
+
+新协议：
+message ChunkRepairTaskInfoPb {
+  required string id = 10;
+  required uint32 bad_chunkid = 20;
+  optional string bad_chunkip = 30;
+  optional string bad_uuid = 40;
+  required uint32 new_chunkid = 50;
+  optional string new_chunkip = 60;
+  optional string new_uuid = 70;
+  required uint64 create_time = 80;
+  optional uint32 status = 90;
+};</code></pre>
+
+
+<p><strong>limax修复脚本修改</strong>*<br>
+prepare_repair.py增加可选参数<br>
+<img src="./Udisk v4 设计文档 · Wiki · ucsd-udisk _ udisk · GitLab_files/image(2).png" alt="image"></p>
+
+<h2>
+<a id="loki修复过程中pc修复前后集群版本号校验问题" class="anchor" href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/wikis/udisk-v4-%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3#loki%E4%BF%AE%E5%A4%8D%E8%BF%87%E7%A8%8B%E4%B8%ADpc%E4%BF%AE%E5%A4%8D%E5%89%8D%E5%90%8E%E9%9B%86%E7%BE%A4%E7%89%88%E6%9C%AC%E5%8F%B7%E6%A0%A1%E9%AA%8C%E9%97%AE%E9%A2%98" aria-hidden="true"></a>loki修复过程中，PC修复前后集群版本号校验问题</h2>
+
+<p><strong>原因:</strong><br>
+为了处理修复过程中primary chunk变动带来的问题，所以PC开始修复、修复结束时都会向metaserver请求集群version，对比version是否相同，不相同的话终止修复。<br>
+修复过程中由主chunk向从chunk主动推送数据，推送过程中如果发生primary chunk切换，原主chunk切换为从，另一从切为主，可能造成PC数据不一致。</p>
+
+<p><a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/issues/3" data-original="Loki修复Chunk过程及问题整理" data-project="2745" data-issue="3294" data-reference-filter="IssueReferenceFilter" title="Issue: Loki修复Chunk过程及问题整理" class="gfm gfm-issue">Loki修复Chunk过程及问题整理</a><br>
+<a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/issues/10" data-original="修复中发生主chunk切换" data-project="2745" data-issue="3404" data-reference-filter="IssueReferenceFilter" title="Issue: 修复中发生主chunk切换" class="gfm gfm-issue">修复中发生主chunk切换</a><br>
+<a href="https://gitlab.ucloudadmin.com/ucsd-udisk/udisk/issues/30" data-original="修复验证关键指标" data-project="2745" data-issue="3524" data-reference-filter="IssueReferenceFilter" title="Issue: 修复验证关键指标" class="gfm gfm-issue">修复验证关键指标</a>    </p></div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+<ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-7" tabindex="0" style="display: none;"></ul><span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span><span role="status" aria-live="polite" class="select2-hidden-accessible"></span><div class="device-xs visible-xs"></div><div class="device-sm visible-sm"></div><div class="device-md visible-md"></div><div class="device-lg visible-lg"></div><div id="ascrail2006" class="nicescroll-rails nicescroll-rails-vr" style="width: 7px; z-index: 1000; cursor: default; position: fixed; top: 0px; left: 223px; height: 969px; touch-action: none; display: none;"><div class="nicescroll-cursors" style="position: relative; top: 0px; float: right; width: 5px; height: 0px; background-color: rgb(255, 255, 255); border: 1px solid rgb(255, 255, 255); background-clip: padding-box; border-radius: 5px; touch-action: none;"></div></div><div id="ascrail2006-hr" class="nicescroll-rails nicescroll-rails-hr" style="height: 7px; z-index: 1000; top: 962px; left: 0px; position: fixed; cursor: default; display: none;"><div class="nicescroll-cursors" style="position: absolute; top: 0px; height: 5px; width: 0px; background-color: rgb(255, 255, 255); border: 1px solid rgb(255, 255, 255); background-clip: padding-box; border-radius: 5px;"></div></div></body></html>

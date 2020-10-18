@@ -473,17 +473,17 @@ func Make(peers []*labrpc.ClientEnd, me int,
   rf.nextIndex = make([]int, len(rf.peers))
   for i := range rf.nextIndex { // initialize with 1
     rf.nextIndex[i] = len(rf.logs)
-  } 
+  }
   rf.matchIndex = make([]int, len(rf.peers))
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
   fmt.Printf("Create server=(%v).\n", rf)
-  
+
   rf.electionTimer = time.NewTimer(ElectionDuration())
   rf.heartbeatTimer = time.NewTimer(HEARTBEAT_INTERVAL * time.Millisecond)
   go rf.StartLoop()
-  
+
 	return rf
 }
 
